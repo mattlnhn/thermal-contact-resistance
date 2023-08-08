@@ -93,8 +93,8 @@ for i = 1:timeSteps
     % transient-heat-transfer-between-two-1-d-materials
     kappa = k1/k2;
     gamma = (kappa-1)/(kappa+1);
-    A(N1, N1) = -(2-gamma); A(N1+1, N1+1) = -(2-gamma);
-    A(N1, N1+1) = 2/(kappa+1); A(N1+1, N1) = 2/(kappa+1);
+    A(N1, N1) = -(2-gamma); A(N1+1, N1+1) = -(2+gamma);
+    A(N1, N1+1) = 2/(kappa+1); A(N1+1, N1) = 2*kappa/(kappa+1);
 
     % T at next time step
     Ti = tau*(A*Ti + b) + Ti;
