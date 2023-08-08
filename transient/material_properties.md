@@ -1,4 +1,4 @@
-a0 + a1*T + a2*T^2 (in deg C)
+a0 + a1\*T + a2\*T^2 (in deg C)
 
 **Inconel 718**
 
