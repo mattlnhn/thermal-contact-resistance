@@ -13,6 +13,12 @@ TC2 = dat.T_Inco2;
 roomTemp = mean(dat.T_room);
 clear dat
 
+% truncate data if desired
+starttime = 0;
+TC1 = TC1(time>starttime);
+TC2 = TC2(time>starttime);
+time = time(time>starttime);
+
 % geometry
 dx = .5e-3; % cell size %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 L1 = .0015; % span of 1st material, m
@@ -22,7 +28,7 @@ Ltotal = L1 + L2 + L3; % distance between TCs
 
 % time
 dt = 1e-3; % time step %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-timeSteps = time(end)/dt;
+timeSteps = round((time(end)-time(1))/dt);
 
 % functions for varying physical properties w/ temp
 % material 1: Inco
@@ -56,14 +62,15 @@ A(1, 1) = -3; A(end, end) = -3;
 
 b = zeros(N, 1);
 
-Ti = roomTemp*ones(N, 1); % assume room temp throughout at start
+%Ti = roomTemp*ones(N, 1); % assume room temp throughout at start
+Ti = .5*(TC1(1)+TC2(1))*ones(N, 1); % assume uniform avg temp to start
 Tstore = zeros(N, timeSteps);
 
 d = 1; % counts through data points
 
 for i = 1:timeSteps
     % update boundary conditions when next data point reached
-    currentTime = round((i-1)*dt, 5);
+    currentTime = round((i-1)*dt+time(1), 5);
     if currentTime == round(time(d+1), 5)
         d = d+1;
         fprintf('%.2f%% complete.\n', 100*i/timeSteps)
