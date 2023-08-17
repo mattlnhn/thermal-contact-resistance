@@ -22,7 +22,7 @@
 
 %% prep
 clear; close all; clc;
-filename = 'tcc_data_abridged.csv';
+filename = 'data-16-08-2023-12-00.csv';
 
 %% section geometry
 % upstream copper/inco
@@ -89,16 +89,17 @@ load upstreamdownstream.mat
 %% central section
 dt = 1.25e-3;
 tfactor = dt/dt_ud;
-dat = importInterpData(filename, dt);
+dat = importInterpData(filename, dt, 'makima');
 timeSteps = length(dat.time);
 
+% initial temp distribution
+% linear interpolation between initial end temps
 Tc = interp1([1; gc.N], [dat.T_Inco1(1); dat.T_Inco2(1)], 1:gc.N)';
 
 % no. of future time steps
 r = 150;
 % small number
-% 1% relative change
-epsilon = 1e-2;
+epsilon = 1e-6; % was 1e-2
 
 % unknown heat transfer coefficient
 initialH = 1e3;
@@ -112,14 +113,16 @@ TdH = zeros(2, r);
 X = zeros(2, r);
 
 % convergence criteria
-% 5% relative change
-TOLdH = 5.0e-2;
-TOLerror = 5.0e-2;
+TOLdH = 1.0e-8;
+TOLerror = 1.0e-8; 
+
+qu = kron(qu, ones(tfactor, 1));
+qd = kron(qd, ones(tfactor, 1));
 
 for m = 1:timeSteps % time step m
     % prescribed heat flux
-    qL = qu(1 + tfactor*(m-1));
-    qR = qd(1 + tfactor*(m-1));
+%     qL = qu(1 + tfactor*(m-1));
+%     qR = qd(1 + tfactor*(m-1));
 
     if m ~= 1
         H = Hstore(m-1);
@@ -145,12 +148,16 @@ for m = 1:timeSteps % time step m
         eH = epsilon*H;
 
         % starting from prev timestep
-        Tcurrent(:, 1) = temp2I_CR_QBC(qL, qR, Tavg(1), Tc, dt, H, gc, mc);
-        TdHcurrent(:, 1) = temp2I_CR_QBC(qL, qR, Tavg(1), Tc, dt, H+eH, gc, mc);
+%         Tcurrent(:, 1) = temp2I_CR_QBC(qL, qR, Tavg(1), Tc, dt, H, gc, mc);
+%         TdHcurrent(:, 1) = temp2I_CR_QBC(qL, qR, Tavg(1), Tc, dt, H+eH, gc, mc);
+        Tcurrent(:, 1) = temp2I_CR_QBC(qu(m), qd(m), Tavg(1), Tc, dt, H, gc, mc);
+        TdHcurrent(:, 1) = temp2I_CR_QBC(qu(m), qd(m), Tavg(1), Tc, dt, H+eH, gc, mc);
         for j = 2:r
             % update to (m+j-1)th time step
-            Tcurrent(:, j) = temp2I_CR_QBC(qL, qR, Tavg(j), Tcurrent(:, j-1), dt, H, gc, mc);
-            TdHcurrent(:, j) = temp2I_CR_QBC(qL, qR, Tavg(j), TdHcurrent(:, j-1), dt, H+eH, gc, mc);
+%             Tcurrent(:, j) = temp2I_CR_QBC(qL, qR, Tavg(j), Tcurrent(:, j-1), dt, H, gc, mc);
+%             TdHcurrent(:, j) = temp2I_CR_QBC(qL, qR, Tavg(j), TdHcurrent(:, j-1), dt, H+eH, gc, mc);
+            Tcurrent(:, j) = temp2I_CR_QBC(qu(m+j-1), qd(m+j-1), Tavg(j), Tcurrent(:, j-1), dt, H, gc, mc);
+            TdHcurrent(:, j) = temp2I_CR_QBC(qu(m+j-1), qd(m+j-1), Tavg(j), TdHcurrent(:, j-1), dt, H+eH, gc, mc);
         end
         T = [Tcurrent(1, :); Tcurrent(end, :)];
         TdH = [TdHcurrent(1, :); TdHcurrent(end, :)];

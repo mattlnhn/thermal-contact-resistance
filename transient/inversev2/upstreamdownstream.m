@@ -1,6 +1,6 @@
-clear; close all; clc;
+%clear; close all; clc;
 
-filename = 'tcc_data_abridged.csv';
+filename = 'data-16-08-2023-12-00.csv';
 
 % geometry/material properties can be copy/pasted from main.m.
 
@@ -65,11 +65,13 @@ md.Frho2 = Frho_Cu;
 
 %% upstream/downstream heat flux
 dt_ud = .25e-3;
-dat = importInterpData(filename, dt_ud);
+dat = importInterpData(filename, dt_ud, 'makima');
 timeSteps = length(dat.time);
 qu = zeros(timeSteps, 1);
 qd = zeros(timeSteps, 1);
 
+% initial temp distribution
+% linear interpolation between initial end temps
 Tu = interp1([1; gu.N], [dat.T_Cu2(1); dat.T_Inco1(1)], 1:gu.N)';
 Td = interp1([1; gd.N], [dat.T_Inco2(1); dat.T_Cu3(1)], 1:gd.N)';
 
@@ -84,7 +86,7 @@ for m = 1:timeSteps
     coefd = [ones(length(fd), 1) gd.dx*fd']\Td(fd);
     qd(m) = -md.Fk1(.5*(dat.T_Inco2(m)+dat.T_Cu3(m)))*coefd(2);
 
-    fprintf('%.2f complete\n', 100*m/timeSteps)
+    fprintf('%.2f%% complete.\n', 100*m/timeSteps)
 end
 
 save upstreamdownstream.mat qu qd dt_ud
