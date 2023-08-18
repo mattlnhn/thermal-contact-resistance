@@ -84,7 +84,7 @@ md.Fc_p2 = Fc_p_Cu;
 md.Frho2 = Frho_Cu;
 
 %% precaulculated upstream/downstream data
-load upstreamdownstream.mat
+load upstreamdownstream2.mat
 
 %% central section
 dt = 1.25e-3;
@@ -116,14 +116,11 @@ X = zeros(2, r);
 TOLdH = 1.0e-8;
 TOLerror = 1.0e-8; 
 
-qu = kron(qu, ones(tfactor, 1));
-qd = kron(qd, ones(tfactor, 1));
+% resize heat flux vectors
+qu = qu(1:tfactor:end);
+qd = qd(1:tfactor:end);
 
 for m = 1:timeSteps % time step m
-    % prescribed heat flux
-%     qL = qu(1 + tfactor*(m-1));
-%     qR = qd(1 + tfactor*(m-1));
-
     if m ~= 1
         H = Hstore(m-1);
     else
@@ -148,14 +145,10 @@ for m = 1:timeSteps % time step m
         eH = epsilon*H;
 
         % starting from prev timestep
-%         Tcurrent(:, 1) = temp2I_CR_QBC(qL, qR, Tavg(1), Tc, dt, H, gc, mc);
-%         TdHcurrent(:, 1) = temp2I_CR_QBC(qL, qR, Tavg(1), Tc, dt, H+eH, gc, mc);
         Tcurrent(:, 1) = temp2I_CR_QBC(qu(m), qd(m), Tavg(1), Tc, dt, H, gc, mc);
         TdHcurrent(:, 1) = temp2I_CR_QBC(qu(m), qd(m), Tavg(1), Tc, dt, H+eH, gc, mc);
         for j = 2:r
             % update to (m+j-1)th time step
-%             Tcurrent(:, j) = temp2I_CR_QBC(qL, qR, Tavg(j), Tcurrent(:, j-1), dt, H, gc, mc);
-%             TdHcurrent(:, j) = temp2I_CR_QBC(qL, qR, Tavg(j), TdHcurrent(:, j-1), dt, H+eH, gc, mc);
             Tcurrent(:, j) = temp2I_CR_QBC(qu(m+j-1), qd(m+j-1), Tavg(j), Tcurrent(:, j-1), dt, H, gc, mc);
             TdHcurrent(:, j) = temp2I_CR_QBC(qu(m+j-1), qd(m+j-1), Tavg(j), TdHcurrent(:, j-1), dt, H+eH, gc, mc);
         end
@@ -163,31 +156,23 @@ for m = 1:timeSteps % time step m
         TdH = [TdHcurrent(1, :); TdHcurrent(end, :)];
         X = (TdH - T)./eH;
 
-        % if clause to deal with startup error
-        % if any elements of X non-zero
-        if any(any(X))
-            % newton method update step
-            dH = sum((Y-T).*X, 'all')/sum(X.^2, 'all');
-            H = H + dH;
-        else
-            fprintf('Zero sensitivity.\n')
-            dH = 0;
-            H = 1e3;
-        end
+        % newton method update step
+        dH = sum((Y-T).*X, 'all')/sum(X.^2, 'all');
+        H = H + dH;
 
         % convergence checks
         error = sum(.5*(Y-T).^2);
         if abs((dH-prevdH)/prevdH) < TOLdH
             converged = 1;
-            %fprintf('Relative change in dH small, dH = %.3g.\n', dH)
+            fprintf('TOLdH. ')
         end
         if abs((error-preverror)/preverror) < TOLerror
             converged = 1;
-            %fprintf('Relative change in error small, error = %.3g.\n', error)
+            fprintf('TOLerror. ')
         end
         if iter > 100
             converged = 1;
-            %fprintf('Max iterations exceeded.\n')
+            fprintf('Max iter. ')
         end
 
         iter = iter + 1;
@@ -196,13 +181,14 @@ for m = 1:timeSteps % time step m
 
     % to deal with startup error
     if H < 0
-        Hstore(m) = 1e3;
+        Hstore(m) = 1;
+        fprintf('H < 0 caught. ')
     else
         Hstore(m) = H;
     end
 
     Tc = Tcurrent(:, 1);
-    fprintf('%.3f%% complete\n', 100*m/timeSteps)
+    fprintf('%.3f%% complete.\n', 100*m/timeSteps)
 end
 
 fileTime = string(datetime('now', Format='yyyyMMdd_HHmmss'));
