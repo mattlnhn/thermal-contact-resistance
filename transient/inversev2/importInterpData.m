@@ -1,9 +1,18 @@
-function [datOut] = importInterpData(filename, dt, method)
+function [datOut] = importInterpData(filename, dt, method, smoothing, window)
 % import data from csv & linearly interpolate in time
     % read in data
     datIn = readtable(filename);
     startTime = datIn.time(1);
     endTime = datIn.time(end);
+    % smooth temps before interp
+    if exist('smoothing', 'var') && exist('window', 'var')
+        datIn.T_Cu1 = smoothdata(datIn.T_Cu1, smoothing, window);
+        datIn.T_Cu2 = smoothdata(datIn.T_Cu2, smoothing, window);
+        datIn.T_Inco1 = smoothdata(datIn.T_Inco1, smoothing, window);
+        datIn.T_Inco2 = smoothdata(datIn.T_Inco2, smoothing, window);
+        datIn.T_Cu3 = smoothdata(datIn.T_Cu3, smoothing, window);
+        datIn.T_Cu4 = smoothdata(datIn.T_Cu4, smoothing, window);
+    end
     % vector of times 0-end spaced by dt
     datOut.time = startTime:dt:endTime;
     % interpolate
