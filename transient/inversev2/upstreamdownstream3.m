@@ -1,4 +1,4 @@
-clear; close all; clc;
+%clear; close all; clc;
 
 filename = "5N.dat";
 
@@ -69,22 +69,24 @@ totalSteps = length(dat.time);
 qu = zeros(totalSteps+1, 2);
 qd = qu;
 
-%% initial temp distribution
-% linear interpolation between initial end temps
-initialT = interp1([1; gu.N], [dat.T_Cu2(1); dat.T_Inco1(1)], 1:gu.N)';
-%Td = interp1([1; gd.N], [dat.T_Inco2(1); dat.T_Cu3(1)], 1:gd.N)';
-
 %% parameters
 dt = .25e-3;    % finite volume time step
+
+r = 25; % future points of data considered
 epsilon = 1e-2; % small fraction for newton method
-TOLdq = 1e-3;   % tolerance for relative change in dq
-TOLerror = 1e-9;    % tolerance for relative change in error
-maxIter = 25;   % max iterations
-qInitial = 1000;    % first guess at q
+RTOLq = 1e-3;    % tolerance for relative change in q
+RTOLdq = 1e-2;  % tolerance for relative change in dq
+RTOLerror = 1e-6;   % tolerance for relative change in error
+maxIter = 20;   % max iterations
+
+qInitial = 10000;   % first guess at q
 qu(1, :) = qInitial;
 qd(1, :) = qInitial;
 
 %% time iteration upstream
+% initial temp distribution
+initialT = interp1([1; gu.N], [dat.T_Cu2(1); dat.T_Inco1(1)], 1:gu.N)';
+
 for m = 1:totalSteps-1
     % reset counters
     converged = 0;
@@ -94,11 +96,12 @@ for m = 1:totalSteps-1
     dqL = errorL;
     dqR = errorL;
 
-    currentTime = dat.time(m);
-    nextTime = dat.time(m+1);
-    currentSteps = round((nextTime-currentTime)/dt);
+    % time data
+    time = dat.time(m:m+r);
+    steps = round((time - time(1))/dt);
 
-    T = zeros(gu.N, currentSteps+1);    % temp matrices incl. initial time
+    % temp matrices incl. initial time
+    T = zeros(gu.N, steps(end)+1);
     T(:, 1) = initialT;
     TdqL = T;
     TdqR = T;
@@ -106,9 +109,9 @@ for m = 1:totalSteps-1
     qL = qu(m, 1);
     qR = qu(m, 2);
 
-    Y = [dat.T_Cu2(m);
-        dat.T_Inco1(m)];
-    Tavg = .5*(Y(1) + Y(2));
+    Y = [dat.T_Cu2(m:m+r)';
+        dat.T_Inco1(m:m+r)'];
+    Tavg = mean(Y, 'all');
 
     while converged == 0
         prevdqL = dqL;
@@ -116,7 +119,7 @@ for m = 1:totalSteps-1
         preverrorL = errorL;
         preverrorR = errorR;
 
-        for n = 1:currentSteps
+        for n = 1:steps(end)
             T(:, n+1) = temp1I_PC_QBC(qL, qR, Tavg, T(:, n), dt, gu, mu);
             TdqL(:, n+1) = temp1I_PC_QBC((1+epsilon)*qL, qR, Tavg, ...
                 TdqL(:, n), dt, gu, mu);
@@ -124,10 +127,10 @@ for m = 1:totalSteps-1
                 TdqR(:, n), dt, gu, mu);
         end
 
-        % T at sensor location, excl. initial
-        Ts = [T(1, 2:end); T(end, 2:end)];
-        TdqLs = [TdqL(1, 2:end); TdqL(end, 2:end)];
-        TdqRs = [TdqR(1, 2:end); TdqR(end, 2:end)];
+        % T at sensor locations & measurement times, excl. initial
+        Ts = [T(1, steps+1); T(end, steps+1)];
+        TdqLs = [TdqL(1, steps+1); TdqL(end, steps+1)];
+        TdqRs = [TdqR(1, steps+1); TdqR(end, steps+1)];
 
         % sensitivity coefficients
         XL = (TdqLs - Ts)./(epsilon*qL);
@@ -143,19 +146,28 @@ for m = 1:totalSteps-1
         errorL = sum(.5*(Y-TdqLs).^2, 'all');
         errorR = sum(.5*(Y-TdqRs).^2, 'all');
 
-        if abs((dqL-prevdqL)/prevdqL) < TOLdq && ...
-                abs((dqR-prevdqR)/prevdqR) < TOLdq
+        % convergence criteria
+        % relative change in q
+        if abs(dqL/qL) < RTOLq && abs(dqR/qR) < RTOLq
             converged = 1;
-            fprintf('TOLdq. ')
+            fprintf('U: RTOLq. ')
         end
-        if abs((errorL-preverrorL)/preverrorL) < TOLerror && ...
-                abs((errorR-preverrorR)/preverrorR) < TOLerror
+        % relative change in dq
+        if abs((dqL-prevdqL)/prevdqL) < RTOLdq && ...
+                abs((dqR-prevdqR)/prevdqR) < RTOLdq
             converged = 1;
-            fprintf('TOLerror. ')
+            fprintf('U: RTOLdq. ')
         end
+        % relative change in error
+        if abs((errorL-preverrorL)/preverrorL) < RTOLerror && ...
+                abs((errorR-preverrorR)/preverrorR) < RTOLerror
+            converged = 1;
+            fprintf('U: RTOLerror. ')
+        end
+        % timeout
         if iter > maxIter
             converged = 1;
-            fprintf('Max iter. ')
+            fprintf('U: Max iter. ')
         end
 
         iter = iter + 1;
@@ -166,8 +178,110 @@ for m = 1:totalSteps-1
     qu(m+1, :) = [qL qR];
     
     % next step initial temp
-    for n = 1:currentSteps
+    for n = 1:steps(2)
         initialT = temp1I_PC_QBC(qL, qR, Tavg, initialT, dt, gu, mu);
+    end
+
+    fprintf('%.3f%% complete.\n', 100*m/totalSteps)
+end
+
+%% time iteration downstream
+% initial temp distribution
+initialT = interp1([1; gd.N], [dat.T_Inco2(1); dat.T_Cu3(1)], 1:gd.N)';
+
+for m = 1:totalSteps-1
+    % reset counters
+    converged = 0;
+    iter = 1;
+    errorL = 1e20;
+    errorR = errorL;
+    dqL = errorL;
+    dqR = errorL;
+
+    % time data
+    time = dat.time(m:m+r);
+    steps = round((time - time(1))/dt);
+
+    % temp matrices incl. initial time
+    T = zeros(gd.N, steps(end)+1);
+    T(:, 1) = initialT;
+    TdqL = T;
+    TdqR = T;
+
+    qL = qd(m, 1);
+    qR = qd(m, 2);
+
+    Y = [dat.T_Inco2(m:m+r)';
+        dat.T_Cu3(m:m+r)'];
+    Tavg = mean(Y, 'all');
+
+    while converged == 0
+        prevdqL = dqL;
+        prevdqR = dqR;
+        preverrorL = errorL;
+        preverrorR = errorR;
+
+        for n = 1:steps(end)
+            T(:, n+1) = temp1I_PC_QBC(qL, qR, Tavg, T(:, n), dt, gd, md);
+            TdqL(:, n+1) = temp1I_PC_QBC((1+epsilon)*qL, qR, Tavg, ...
+                TdqL(:, n), dt, gd, md);
+            TdqR(:, n+1) = temp1I_PC_QBC(qL, (1+epsilon)*qR, Tavg, ...
+                TdqR(:, n), dt, gd, md);
+        end
+
+        % T at sensor locations & measurement times, excl. initial
+        Ts = [T(1, steps+1); T(end, steps+1)];
+        TdqLs = [TdqL(1, steps+1); TdqL(end, steps+1)];
+        TdqRs = [TdqR(1, steps+1); TdqR(end, steps+1)];
+
+        % sensitivity coefficients
+        XL = (TdqLs - Ts)./(epsilon*qL);
+        XR = (TdqRs - Ts)./(epsilon*qR);
+
+        % newton method increment
+        dqL = sum((Y-Ts).*XL, 'all')/sum(XL.^2, 'all');
+        dqR = sum((Y-Ts).*XR, 'all')/sum(XR.^2, 'all');
+
+        qL = qL + dqL;
+        qR = qR + dqR;
+
+        errorL = sum(.5*(Y-TdqLs).^2, 'all');
+        errorR = sum(.5*(Y-TdqRs).^2, 'all');
+
+        % convergence criteria
+        % relative change in q
+        if abs(dqL/qL) < RTOLq && abs(dqR/qR) < RTOLq
+            converged = 1;
+            fprintf('D: RTOLq. ')
+        end
+        % relative change in dq
+        if abs((dqL-prevdqL)/prevdqL) < RTOLdq && ...
+                abs((dqR-prevdqR)/prevdqR) < RTOLdq
+            converged = 1;
+            fprintf('D: RTOLdq. ')
+        end
+        % relative change in error
+        if abs((errorL-preverrorL)/preverrorL) < RTOLerror && ...
+                abs((errorR-preverrorR)/preverrorR) < RTOLerror
+            converged = 1;
+            fprintf('D: RTOLerror. ')
+        end
+        % timeout
+        if iter > maxIter
+            converged = 1;
+            fprintf('D: Max iter. ')
+        end
+
+        iter = iter + 1;
+
+    end
+
+    % save q
+    qd(m+1, :) = [qL qR];
+    
+    % next step initial temp
+    for n = 1:steps(2)
+        initialT = temp1I_PC_QBC(qL, qR, Tavg, initialT, dt, gd, md);
     end
 
     fprintf('%.3f%% complete.\n', 100*m/totalSteps)
