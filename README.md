@@ -1,4 +1,4 @@
-# internship
+# Thermal Contact Conductance
 
 ## IHCP solver based on the function specification method to calculate unknown heat transfer coefficients
 
