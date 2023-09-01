@@ -1,8 +1,13 @@
-%% Sequential function specification method for IHCP with unknown H
+%% Function specification method for IHCP with unknown H
 % Matt Lenahan, August 2023
 % Prerequisites
 % 1.    place data file containing temp data in same directory as this
-%       file. see example file for formatting and column names.
+%       file. variable (column) names are:
+%       pos     LVDT position
+%       load    load
+%       time    time (seconds of the day)
+%       T_oven, T_Cu1, T_Cu2, T_Inco1, T_H25, T_Inco2, T_Cu3, T_Cu4
+%               thermocouples, in order from oven side to load cell side
 % 2.    precalculate heat flux in upstream/downstream section using
 %       upstreamdownstream.m.
 
