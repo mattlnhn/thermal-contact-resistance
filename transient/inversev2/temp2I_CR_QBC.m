@@ -1,10 +1,10 @@
-function [Ti] = temp2I_CR_QBC(qL, qR, Tavg, Ti, dt, H, geom, mat)
+function [Ti] = temp2I_CR_QBC(qL, qR, Tavg, Ti, dt, h, geom, mat)
 % temp distribution for 2 interface, contact resistance, heat flux BC
 % QL                            left BC heat flux
 % QR                            right BC heat flux
 % Ti                            temperature distribution at last time step
 % dt                            time step
-% H                             HTC at interface with contact resistance
+% h                             [hu hd] htcs at upstream/downstream
 % geom          geom.dx         distance btwn nodes
 %               geom.L1         length of 1st section
 %               geom.L2         length of 2nd section
@@ -18,6 +18,9 @@ function [Ti] = temp2I_CR_QBC(qL, qR, Tavg, Ti, dt, H, geom, mat)
 %               mat.Fk3
 %               mat.Fc_p3
 %               mat.Frho3
+
+hu = h(1);
+hd = h(2);
 
 % geometry
 geom.Ltotal = geom.L1 + geom.L2 + geom.L3; % total length
@@ -68,13 +71,14 @@ if tau1 > .5 || tau2 > .5 || tau3 > .5
 end
 
 % modification of matrix A on interface with contact resistance
-phi1 = 2*k1*H^-1*geom.dx^-1;
-phi2 = 2*k2*H^-1*geom.dx^-1;
-phi3 = 2*k3*H^-1*geom.dx^-1;
-xi1_12 = 2*phi1/(1-(1+phi1)*(1+phi2));
-xi2_12 = 2*phi2/(1-(1+phi1)*(1+phi2));
-xi2_23 = 2*phi2/(1-(1+phi2)*(1+phi3));
-xi3_23 = 2*phi3/(1-(1+phi2)*(1+phi3));
+phi1 = 2*k1*hu^-1*geom.dx^-1;
+phi21 = 2*k2*hu^-1*geom.dx^-1;
+phi22 = 2*k2*hd^-1*geom.dx^-1;
+phi3 = 2*k3*hd^-1*geom.dx^-1;
+xi1_12 = 2*phi1/(1-(1+phi1)*(1+phi21));
+xi2_12 = 2*phi21/(1-(1+phi1)*(1+phi21));
+xi2_23 = 2*phi22/(1-(1+phi22)*(1+phi3));
+xi3_23 = 2*phi3/(1-(1+phi22)*(1+phi3));
 
 A(N1, N1) = xi2_12-1;
 A(N1, N1+1) = -xi2_12;
