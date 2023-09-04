@@ -1,4 +1,4 @@
-function [Ti] = temp1I_PC_QBC(qL, qR, Tavg, Ti, dt, geom, mat)
+function [Ti] = temp1I_PC_QBC(qL, qR, Tavg, Ti, dt, geom, mat, A)
 % temp distribution for 1 interface, perfect conduction, heat flux BCs
 % TL                            left BC temperature
 % TR                            right BC temperature
@@ -13,36 +13,33 @@ function [Ti] = temp1I_PC_QBC(qL, qR, Tavg, Ti, dt, geom, mat)
 %               mat.Fk1         etc.
 %               mat.Fc_p1
 %               mat.Frho1
-
-% geometry
-geom.Ltotal = geom.L1 + geom.L2; % total section length
+% A                             precalculated tridiagonal A to save time
 
 % nodes
-N = geom.Ltotal/geom.dx;
-N1 = geom.L1/geom.dx;
-N2 = geom.L2/geom.dx;
+N1 = geom{3}(1);
+N2 = geom{3}(2);
+N = N1 + N2;
+dx = geom{1};
 
 % physical properties based on average of boundary temps
-k1 = mat.Fk1(Tavg);
-c_p1 = mat.Fc_p1(Tavg);
-rho1 = mat.Frho1(Tavg);
+k1 = mat{1, 1}(Tavg);
+c_p1 = mat{2, 1}(Tavg);
+rho1 = mat{3, 1}(Tavg);
 alpha1 = k1*rho1^-1*c_p1^-1;
-tau1 = dt*alpha1*geom.dx^-2;
+tau1 = dt*alpha1*dx^-2;
 
-k2 = mat.Fk2(Tavg);
-c_p2 = mat.Fc_p2(Tavg);
-rho2 = mat.Frho2(Tavg);
+k2 = mat{1, 2}(Tavg);
+c_p2 = mat{2, 2}(Tavg);
+rho2 = mat{3, 2}(Tavg);
 alpha2 = k2*rho2^-1*c_p2^-1;
-tau2 = dt*alpha2*geom.dx^-2;
+tau2 = dt*alpha2*dx^-2;
 
 % constructing matrices
-% tridiagonal A
-A = diag(ones(N-1, 1), -1) + diag(-2*ones(N, 1), 0) + diag(ones(N-1, 1), 1);
-A(1, 1) = -1; A(end, end) = -1;
+% tridiagonal A precalculated
 % boundary condition b
 b = zeros(N, 1);
-b(1) = qL*geom.dx/k1;
-b(end) = -qR*geom.dx/k2;
+b(1) = qL*dx/k1;
+b(end) = -qR*dx/k2;
 
 % build diagonal tau matrix using linear indexing
 tau = eye(N);
@@ -69,4 +66,5 @@ if any(isnan(Ti))
 end
 
 end
+
 

@@ -1,4 +1,4 @@
-function [Ti] = temp2I_CR_QBC(qL, qR, Tavg, Ti, dt, h, geom, mat)
+function [Ti] = temp2I_CR_QBC(qL, qR, Tavg, Ti, dt, h, geom, mat, A)
 % temp distribution for 2 interface, contact resistance, heat flux BC
 % QL                            left BC heat flux
 % QR                            right BC heat flux
@@ -22,33 +22,31 @@ function [Ti] = temp2I_CR_QBC(qL, qR, Tavg, Ti, dt, h, geom, mat)
 hu = h(1);
 hd = h(2);
 
-% geometry
-geom.Ltotal = geom.L1 + geom.L2 + geom.L3; % total length
-
 % nodes
-N = geom.Ltotal/geom.dx;
-N1 = geom.L1/geom.dx;
-N2 = geom.L2/geom.dx;
-N3 = geom.L3/geom.dx;
+N1 = geom{3}(1);
+N2 = geom{3}(2);
+N3 = geom{3}(3);
+N = N1 + N2 + N3;
+dx = geom{1};
 
 % physical properties based on average of boundary temps
-k1 = mat.Fk1(Tavg);
-c_p1 = mat.Fc_p1(Tavg);
-rho1 = mat.Frho1(Tavg);
+k1 = mat{1, 1}(Tavg);
+c_p1 = mat{2, 1}(Tavg);
+rho1 = mat{3, 1}(Tavg);
 alpha1 = k1*rho1^-1*c_p1^-1;
-tau1 = dt*alpha1*geom.dx^-2;
+tau1 = dt*alpha1*dx^-2;
 
-k2 = mat.Fk2(Tavg);
-c_p2 = mat.Fc_p2(Tavg);
-rho2 = mat.Frho2(Tavg);
+k2 = mat{1, 2}(Tavg);
+c_p2 = mat{2, 2}(Tavg);
+rho2 = mat{3, 2}(Tavg);
 alpha2 = k2*rho2^-1*c_p2^-1;
-tau2 = dt*alpha2*geom.dx^-2;
+tau2 = dt*alpha2*dx^-2;
 
-k3 = mat.Fk3(Tavg);
-c_p3 = mat.Fc_p3(Tavg);
-rho3 = mat.Frho3(Tavg);
+k3 = mat{1, 3}(Tavg);
+c_p3 = mat{2, 3}(Tavg);
+rho3 = mat{3, 3}(Tavg);
 alpha3 = k3*rho3^-1*c_p3^-1;
-tau3 = dt*alpha3*geom.dx^-2;
+tau3 = dt*alpha3*dx^-2;
 
 % build diagonal tau matrix using linear indexing
 tau = eye(N);
@@ -57,13 +55,11 @@ tau(N*N1+N1+1:N+1:N*(N1+N2)) = tau2;
 tau(N*(N1+N2)+N1+N2+1:N+1:N*N) = tau3;
 
 % constructing matrices
-% tridiagonal A
-A = diag(ones(N-1, 1), -1) + diag(-2*ones(N, 1), 0) + diag(ones(N-1, 1), 1);
-A(1, 1) = -1; A(end, end) = -1;
+% tridiagonal A precalculated
 % boundary condition b
 b = zeros(N, 1);
-b(1) = qL*geom.dx/k1;
-b(end) = -qR*geom.dx/k3;
+b(1) = qL*dx/k1;
+b(end) = -qR*dx/k3;
 
 % error message if stability criterion not met
 if tau1 > .5 || tau2 > .5 || tau3 > .5
@@ -71,10 +67,10 @@ if tau1 > .5 || tau2 > .5 || tau3 > .5
 end
 
 % modification of matrix A on interface with contact resistance
-phi1 = 2*k1*hu^-1*geom.dx^-1;
-phi21 = 2*k2*hu^-1*geom.dx^-1;
-phi22 = 2*k2*hd^-1*geom.dx^-1;
-phi3 = 2*k3*hd^-1*geom.dx^-1;
+phi1 = 2*k1*hu^-1*dx^-1;
+phi21 = 2*k2*hu^-1*dx^-1;
+phi22 = 2*k2*hd^-1*dx^-1;
+phi3 = 2*k3*hd^-1*dx^-1;
 xi1_12 = 2*phi1/(1-(1+phi1)*(1+phi21));
 xi2_12 = 2*phi21/(1-(1+phi1)*(1+phi21));
 xi2_23 = 2*phi22/(1-(1+phi22)*(1+phi3));

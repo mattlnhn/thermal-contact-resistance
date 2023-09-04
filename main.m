@@ -13,62 +13,88 @@
 
 %% prep
 clear;
-filename = "20230831_cycles_fixed_2of3.txt";
+filename = "20230830_1_5Ncycle8.dat";
+
 
 %% section geometry
+% geometry/material properties can be copy/pasted from main.m.
 % upstream copper/inco
-gu.dx = .25e-3;
-gu.L1 = 1.5e-3;
-gu.L2 = 6.5e-3;
-gu.N = (gu.L1+gu.L2)/gu.dx;
+% rows: dx, [L1, L2, ...], [N1, N2, ...]
+gu = cell(3, 1);
+gu{1} = .25e-3;
+gu{2} = [1.5e-3, 6.5e-3];
+gu{3} = [gu{2}(1)/gu{1}, gu{2}(2)/gu{1}];
+Nu = round(sum(gu{3}, "all"));
 % central inco/h25/inco
-gc.dx = 1.0e-4;
-gc.L1 = 1.5e-3;
-gc.L2 = 5.0e-3;
-gc.L3 = 1.5e-3;
-gc.N = (gc.L1+gc.L2+gc.L3)/gc.dx;
-gc.tch25 = floor(gc.N*1.5e-3/5e-3);
+% rows: dx, [L1, L2, ...], [N1, N2, ...], H25 TC node #
+gc = cell(4, 1);
+gc{1} = 1.0e-4;
+gc{2} = [1.5e-3, 5.0e-3, 1.5e-3];
+gc{3} = [gc{2}(1)/gc{1}, gc{2}(2)/gc{1}, gc{2}(3)/gc{1}];
+Nc = round(sum(gc{3}, "all"));
+TCH25 = floor(Nc*5e-3/8e-3);
 % downstream inco/copper
-gd.dx = .25e-3;
-gd.L1 = 6.5e-3;
-gd.L2 = 1.5e-3;
-gd.N = (gd.L1+gd.L2)/gd.dx;
+% rows: dx, [L1, L2, ...], [N1, N2, ...]
+gd = cell(3, 1);
+gd{1} = .25e-3;
+gd{2} = [6.5e-3, 1.5e-3];
+gd{3} = [gd{2}(1)/gd{1}, gd{2}(2)/gd{1}];
+Nd = round(sum(gd{3}, "all"));
+
+
+%% section A matrices
+Au = diag(ones(Nu-1, 1), -1) + diag(-2*ones(Nu, 1), 0) + ...
+    diag(ones(Nu-1, 1), 1);
+Au(1, 1) = -1; Au(end, end) = -1;
+Ac = diag(ones(Nc-1, 1), -1) + diag(-2*ones(Nc, 1), 0) + ...
+    diag(ones(Nc-1, 1), 1);
+Ac(1, 1) = -1; Ac(end, end) = -1;
+Ad = diag(ones(Nd-1, 1), -1) + diag(-2*ones(Nd, 1), 0) + ...
+    diag(ones(Nd-1, 1), 1);
+Ad(1, 1) = -1; Ad(end, end) = -1;
+
 
 %% material properties
 % anonymous functions f(T) for materials used
 % k     [W m-1 K-1]
 % c_p   [J kg-1 K-1]
 % rho   [kg m-3]
-Fk_Cu = @(T) 385;
-Fc_p_Cu = @(T) 399.5814286 - 0.0585714*T;
-Frho_Cu = @(T) 8940;
-Fk_Inco = @(T) 9.5164989 + 0.0216787*T + -0.0000039*T^2;
-Fc_p_Inco = @(T) 363.8195515 + 0.1233661*T + 0.0000527*T^2;
-Frho_Inco = @(T) 8190;
-Fk_H25 = @(T) 9.9905357 + 0.0205437*T - 0.000003*T^2;
-Fc_p_H25 = @(T) 396.5228931 + 0.2075422*T + 0.0000134*T^2;
-Frho_H25 = @(T) 9070;
+Fk_Cu       = @(T) 385;
+Fc_p_Cu     = @(T) 399.5814286 - 0.0585714*T;
+Frho_Cu     = @(T) 8940;
+Fk_Inco     = @(T) 9.5164989 + 0.0216787*T + -0.0000039*T^2;
+Fc_p_Inco   = @(T) 363.8195515 + 0.1233661*T + 0.0000527*T^2;
+Frho_Inco   = @(T) 8190;
+Fk_H25      = @(T) 9.9905357 + 0.0205437*T - 0.000003*T^2;
+Fc_p_H25    = @(T) 396.5228931 + 0.2075422*T + 0.0000134*T^2;
+Frho_H25    = @(T) 9070;
 
 % upstream
-mu.Fk1 = Fk_Cu; mu.Fc_p1 = Fc_p_Cu; mu.Frho1 = Frho_Cu;
-mu.Fk2 = Fk_Inco; mu.Fc_p2 = Fc_p_Inco; mu.Frho2 = Frho_Inco;
+% rows: k, c_p, rho
+% columns: material 1, material 2
+mu = cell(3, 2);
+mu{1, 1} = Fk_Cu;   mu{2, 1} = Fc_p_Cu;     mu{3, 1} = Frho_Cu;
+mu{1, 2} = Fk_Inco; mu{2, 2} = Fc_p_Inco;   mu{3, 2} = Frho_Inco;
 
 % central
-mc.Fk1 = Fk_Inco; mc.Fc_p1 = Fc_p_Inco; mc.Frho1 = Frho_Inco;
-mc.Fk2 = Fk_H25; mc.Fc_p2 = Fc_p_H25; mc.Frho2 = Frho_H25;
-mc.Fk3 = Fk_Inco; mc.Fc_p3 = Fc_p_Inco; mc.Frho3 = Frho_Inco;
+% rows: k, c_p, rho
+% columns: material 1, material 2, material 3
+mc = cell(3, 3);
+mc{1, 1} = Fk_Inco; mc{2, 1} = Fc_p_Inco;   mc{3, 1} = Frho_Inco;
+mc{1, 2} = Fk_H25;  mc{2, 2} = Fc_p_H25;     mc{3, 2} = Frho_H25;
+mc{1, 3} = Fk_Inco; mc{2, 3} = Fc_p_Inco;   mc{3, 3} = Frho_Inco;
 
 % downstream
-md.Fk1 = Fk_Inco; md.Fc_p1 = Fc_p_Inco; md.Frho1 = Frho_Inco;
-md.Fk2 = Fk_Cu; md.Fc_p2 = Fc_p_Cu; md.Frho2 = Frho_Cu;
+% rows: k, c_p, rho
+% columns: material 1, material 2
+md = cell(3, 2);
+md{1, 1} = Fk_Inco; md{2, 1} = Fc_p_Inco;   md{3, 1} = Frho_Inco;
+md{1, 2} = Fk_Cu;   md{2, 2} = Fc_p_Cu;     md{3, 2} = Frho_Cu;
+
 
 %% precaulculated upstream/downstream data
 load(filename+".mat")
 
-%% import
-dat = readtable(filename);
-totalSteps = length(dat.time);
-hStore = zeros(totalSteps+1, 2);
 
 %% parameters
 dt = 1.25e-3;    % finite volume time step
@@ -79,13 +105,18 @@ RTOLh = 1e-3;    % tolerance for relative change in q
 RTOLdh = 1e-2;  % tolerance for relative change in dq
 RTOLerror = 1e-6;   % tolerance for relative change in error
 maxIter = 20;   % max iterations    
-
 hInitial = 1000;   % first guess at h
+
+
+%% import
+dat = readtable(filename);
+totalSteps = length(dat.time);
+hStore = zeros(totalSteps-r-1, 2);
 hStore(1, :) = hInitial;
 
 %% time iteration
 % initial temp distribution
-initialT = interp1([1; gc.tch25; gc.N], [dat.T_Inco1(1); dat.T_H25(1); dat.T_Inco2(1)], 1:gc.N)';
+initialT = interp1([1; TCH25; Nc], [dat.T_Inco1(1); dat.T_H25(1); dat.T_Inco2(1)], 1:Nc)';
 
 for m = 1:totalSteps-r-1
     % reset counters
@@ -101,7 +132,7 @@ for m = 1:totalSteps-r-1
     steps = round((time - time(1))/dt);
 
     % temp matrices incl. initial time
-    T = zeros(gc.N, steps(end)+1);
+    T = zeros(Nc, steps(end)+1);
     T(:, 1) = initialT;
     Tdhu = T;
     Tdhd = T;
@@ -122,17 +153,17 @@ for m = 1:totalSteps-r-1
 
         for n = 1:steps(end)
             T(:, n+1) = temp2I_CR_QBC(qu(m), qd(m), Tavg, ...
-                T(:, n), dt, [hu hd], gc, mc);
+                T(:, n), dt, [hu hd], gc, mc, Ac);
             Tdhu(:, n+1) = temp2I_CR_QBC(qu(m), qd(m), Tavg, ...
-                Tdhu(:, n), dt, [(1+epsilon)*hu hd], gc, mc);
+                Tdhu(:, n), dt, [(1+epsilon)*hu hd], gc, mc, Ac);
             Tdhd(:, n+1) = temp2I_CR_QBC(qu(m), qd(m), Tavg, ...
-                Tdhd(:, n), dt, [hu (1+epsilon)*hd], gc, mc);
+                Tdhd(:, n), dt, [hu (1+epsilon)*hd], gc, mc, Ac);
         end
 
         % T at sensor locations & measurement times, excl. initial
-        Ts = [T(1, steps+1); T(gc.tch25, steps+1); T(end, steps+1)];
-        Tdhus = [Tdhu(1, steps+1); Tdhu(gc.tch25, steps+1); Tdhu(end, steps+1)];
-        Tdhds = [Tdhd(1, steps+1); Tdhd(gc.tch25, steps+1); Tdhd(end, steps+1)];
+        Ts = [T(1, steps+1); T(TCH25, steps+1); T(end, steps+1)];
+        Tdhus = [Tdhu(1, steps+1); Tdhu(TCH25, steps+1); Tdhu(end, steps+1)];
+        Tdhds = [Tdhd(1, steps+1); Tdhd(TCH25, steps+1); Tdhd(end, steps+1)];
 
         % sensitivity coefficients
         Xu = (Tdhus - Ts)./(epsilon*hu);
@@ -177,7 +208,7 @@ for m = 1:totalSteps-r-1
     % next step initial temp
     for n = 1:steps(2)
         initialT = temp2I_CR_QBC(qu(m), qd(m), Tavg, ...
-                initialT, dt, [hu hd], gc, mc);
+                initialT, dt, [hu hd], gc, mc, Ac);
     end
 
     fprintf('%.3f%% complete.\n', 100*m/(totalSteps-r-1))
