@@ -42,41 +42,37 @@ Ad(1, 1) = -1; Ad(end, end) = -1;
 
 
 %% material properties
-% anonymous functions f(T) for materials used
-% k     [W m-1 K-1]
-% c_p   [J kg-1 K-1]
-% rho   [kg m-3]
-Fk_Cu       = @(T) 385;
-Fc_p_Cu     = @(T) 399.5814286 - 0.0585714*T;
-Frho_Cu     = @(T) 8940;
-Fk_Inco     = @(T) 9.5164989 + 0.0216787*T + -0.0000039*T^2;
-Fc_p_Inco   = @(T) 363.8195515 + 0.1233661*T + 0.0000527*T^2;
-Frho_Inco   = @(T) 8190;
-Fk_H25      = @(T) 9.9905357 + 0.0205437*T - 0.000003*T^2;
-Fc_p_H25    = @(T) 396.5228931 + 0.2075422*T + 0.0000134*T^2;
-Frho_H25    = @(T) 9070;
+% coefficients, f(T) = a + bT + cT^2
+k_Cu = [385 0 0];
+c_p_Cu = [399.5814286 -.0585714 0];
+rho_Cu = [8940 0 0];
+
+k_Inco = [9.5164989 .0216787 -.0000039];
+c_p_Inco = [363.8195515 .1233661 .0000527];
+rho_Inco = [8190 0 0];
+
+k_H25 = [9.9905357 .0205437 -.000003];
+c_p_H25 = [396.5228931 .2075422 .0000134];
+rho_H25 = [9070 0 0];
 
 % upstream
 % rows: k, c_p, rho
-% columns: material 1, material 2
-mu = cell(3, 2);
-mu{1, 1} = Fk_Cu;   mu{2, 1} = Fc_p_Cu;     mu{3, 1} = Frho_Cu;
-mu{1, 2} = Fk_Inco; mu{2, 2} = Fc_p_Inco;   mu{3, 2} = Frho_Inco;
+% columns: a, b, c where f(T) = a + bT + cT^2
+% layers: material 1, material 2
+mu = zeros(3, 3, 2);
+mu(1, :, 1) = k_Cu;     mu(2, :, 1) = c_p_Cu;   mu(3, :, 1) = rho_Cu;
+mu(1, :, 2) = k_Inco;   mu(2, :, 2) = c_p_Inco; mu(3, :, 2) = rho_Inco;
 
 % central
-% rows: k, c_p, rho
-% columns: material 1, material 2, material 3
-mc = cell(3, 3);
-mc{1, 1} = Fk_Inco; mc{2, 1} = Fc_p_Inco;   mc{3, 1} = Frho_Inco;
-mc{1, 2} = Fk_H25;  mc{2, 2} = Fc_p_H25;     mc{3, 2} = Frho_H25;
-mc{1, 3} = Fk_Inco; mc{2, 3} = Fc_p_Inco;   mc{3, 3} = Frho_Inco;
+mc = zeros(3, 3, 3);
+mc(1, :, 1) = k_Inco;   mc(2, :, 1) = c_p_Inco; mc(3, :, 1) = rho_Inco;
+mc(1, :, 2) = k_H25;    mc(2, :, 2) = c_p_H25;  mc(3, :, 2) = rho_H25;
+mc(1, :, 3) = k_Inco;   mc(2, :, 3) = c_p_Inco; mc(3, :, 3) = rho_Inco;
 
 % downstream
-% rows: k, c_p, rho
-% columns: material 1, material 2
-md = cell(3, 2);
-md{1, 1} = Fk_Inco; md{2, 1} = Fc_p_Inco;   md{3, 1} = Frho_Inco;
-md{1, 2} = Fk_Cu;   md{2, 2} = Fc_p_Cu;     md{3, 2} = Frho_Cu;
+md = zeros(3, 3, 2);
+md(1, :, 1) = k_Inco;   md(2, :, 1) = c_p_Inco; md(3, :, 1) = rho_Inco;
+md(1, :, 2) = k_Cu;     md(2, :, 2) = c_p_Cu;   md(3, :, 2) = rho_Cu;
 
 
 %% parameters

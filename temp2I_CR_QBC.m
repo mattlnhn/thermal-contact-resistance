@@ -30,21 +30,21 @@ N = N1 + N2 + N3;
 dx = geom{1};
 
 % physical properties based on average of boundary temps
-k1 = mat{1, 1}(Tavg);
-c_p1 = mat{2, 1}(Tavg);
-rho1 = mat{3, 1}(Tavg);
+k1 = mat(1, 1, 1) + mat(1, 2, 1)*Tavg + mat(1, 3, 1)*Tavg^2;
+c_p1 = mat(2, 1, 1) + mat(2, 2, 1)*Tavg + mat(2, 3, 1)*Tavg^2;
+rho1 = mat(3, 1, 1) + mat(3, 2, 1)*Tavg + mat(3, 3, 1)*Tavg^2;
 alpha1 = k1*rho1^-1*c_p1^-1;
 tau1 = dt*alpha1*dx^-2;
 
-k2 = mat{1, 2}(Tavg);
-c_p2 = mat{2, 2}(Tavg);
-rho2 = mat{3, 2}(Tavg);
+k2 = mat(1, 1, 2) + mat(1, 2, 2)*Tavg + mat(1, 3, 2)*Tavg^2;
+c_p2 = mat(2, 1, 2) + mat(2, 2, 2)*Tavg + mat(2, 3, 2)*Tavg^2;
+rho2 = mat(3, 1, 2) + mat(3, 2, 2)*Tavg + mat(3, 3, 2)*Tavg^2;
 alpha2 = k2*rho2^-1*c_p2^-1;
 tau2 = dt*alpha2*dx^-2;
 
-k3 = mat{1, 3}(Tavg);
-c_p3 = mat{2, 3}(Tavg);
-rho3 = mat{3, 3}(Tavg);
+k3 = mat(1, 1, 3) + mat(1, 2, 3)*Tavg + mat(1, 3, 3)*Tavg^2;
+c_p3 = mat(2, 1, 3) + mat(2, 2, 3)*Tavg + mat(2, 3, 3)*Tavg^2;
+rho3 = mat(3, 1, 3) + mat(3, 2, 3)*Tavg + mat(3, 3, 3)*Tavg^2;
 alpha3 = k3*rho3^-1*c_p3^-1;
 tau3 = dt*alpha3*dx^-2;
 
