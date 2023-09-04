@@ -78,10 +78,9 @@ md(1, :, 2) = k_Cu;     md(2, :, 2) = c_p_Cu;   md(3, :, 2) = rho_Cu;
 %% parameters
 dt = .25e-3;    % finite volume time step
 
-r = 5; % future points of data considered
+r = 10; % future points of data considered
 epsilon = 1e-2; % small fraction for newton method
 RTOLq = 1e-3;    % tolerance for relative change in q
-RTOLdq = 1e-2;  % tolerance for relative change in dq
 RTOLerror = 1e-6;   % tolerance for relative change in error
 maxIter = 20;   % max iterations
 qInitial = 10000;   % first guess at q
@@ -124,7 +123,7 @@ for m = 1:totalSteps-r-1
 
     Y = [dat.T_Cu2(m:m+r)';
         dat.T_Inco1(m:m+r)'];
-    Tavg = mean(Y, 'all');
+    Tavg = mean(Y, 1);
 
     while converged == 0
         prevdqL = dqL;
@@ -133,11 +132,12 @@ for m = 1:totalSteps-r-1
         preverrorR = errorR;
 
         for n = 1:steps(end)
-            T(:, n+1) = temp1I_PC_QBC(qL, qR, Tavg, T(:, n), dt, gu, ...
-                mu, Au);
-            TdqL(:, n+1) = temp1I_PC_QBC((1+epsilon)*qL, qR, Tavg, ...
+            ai = sum(steps<n); % index for average
+            T(:, n+1) = temp1I_PC_QBC(qL, qR, Tavg(ai), T(:, n), dt, ...
+                gu, mu, Au);
+            TdqL(:, n+1) = temp1I_PC_QBC((1+epsilon)*qL, qR, Tavg(ai), ...
                 TdqL(:, n), dt, gu, mu, Au);
-            TdqR(:, n+1) = temp1I_PC_QBC(qL, (1+epsilon)*qR, Tavg, ...
+            TdqR(:, n+1) = temp1I_PC_QBC(qL, (1+epsilon)*qR, Tavg(ai), ...
                 TdqR(:, n), dt, gu, mu, Au);
         end
 
@@ -166,12 +166,6 @@ for m = 1:totalSteps-r-1
             converged = 1;
             fprintf('U: RTOLq. ')
         end
-        % relative change in dq
-        if abs((dqL-prevdqL)/prevdqL) < RTOLdq && ...
-                abs((dqR-prevdqR)/prevdqR) < RTOLdq
-            converged = 1;
-            fprintf('U: RTOLdq. ')
-        end
         % relative change in error
         if abs((errorL-preverrorL)/preverrorL) < RTOLerror && ...
                 abs((errorR-preverrorR)/preverrorR) < RTOLerror
@@ -193,7 +187,7 @@ for m = 1:totalSteps-r-1
     
     % next step initial temp
     for n = 1:steps(2)
-        initialT = temp1I_PC_QBC(qL, qR, Tavg, initialT, dt, gu, mu, Au);
+        initialT = temp1I_PC_QBC(qL, qR, Tavg(1), initialT, dt, gu, mu, Au);
     end
 
     fprintf('%.3f%% complete.\n', 100*m/(totalSteps-r-1))
@@ -227,7 +221,7 @@ for m = 1:totalSteps-r-1
 
     Y = [dat.T_Inco2(m:m+r)';
         dat.T_Cu3(m:m+r)'];
-    Tavg = mean(Y, 'all');
+    Tavg = mean(Y, 1);
 
     while converged == 0
         prevdqL = dqL;
@@ -236,11 +230,12 @@ for m = 1:totalSteps-r-1
         preverrorR = errorR;
 
         for n = 1:steps(end)
-            T(:, n+1) = temp1I_PC_QBC(qL, qR, Tavg, T(:, n), dt, gd, ...
-                md, Ad);
-            TdqL(:, n+1) = temp1I_PC_QBC((1+epsilon)*qL, qR, Tavg, ...
+            ai = sum(steps<n);
+            T(:, n+1) = temp1I_PC_QBC(qL, qR, Tavg(ai), T(:, n), dt, ...
+                gd, md, Ad);
+            TdqL(:, n+1) = temp1I_PC_QBC((1+epsilon)*qL, qR, Tavg(ai), ...
                 TdqL(:, n), dt, gd, md, Ad);
-            TdqR(:, n+1) = temp1I_PC_QBC(qL, (1+epsilon)*qR, Tavg, ...
+            TdqR(:, n+1) = temp1I_PC_QBC(qL, (1+epsilon)*qR, Tavg(ai), ...
                 TdqR(:, n), dt, gd, md, Ad);
         end
 
@@ -269,12 +264,6 @@ for m = 1:totalSteps-r-1
             converged = 1;
             fprintf('D: RTOLq. ')
         end
-        % relative change in dq
-        if abs((dqL-prevdqL)/prevdqL) < RTOLdq && ...
-                abs((dqR-prevdqR)/prevdqR) < RTOLdq
-            converged = 1;
-            fprintf('D: RTOLdq. ')
-        end
         % relative change in error
         if abs((errorL-preverrorL)/preverrorL) < RTOLerror && ...
                 abs((errorR-preverrorR)/preverrorR) < RTOLerror
@@ -296,7 +285,7 @@ for m = 1:totalSteps-r-1
     
     % next step initial temp
     for n = 1:steps(2)
-        initialT = temp1I_PC_QBC(qL, qR, Tavg, initialT, dt, gd, md, Ad);
+        initialT = temp1I_PC_QBC(qL, qR, Tavg(1), initialT, dt, gd, md, Ad);
     end
 
     fprintf('%.3f%% complete.\n', 100*m/(totalSteps-r-1))

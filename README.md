@@ -1,4 +1,4 @@
-# Thermal Contact Conductance
+# Thermal Contact Resistance
 
 ## IHCP solver based on the function specification method to calculate unknown heat transfer coefficients
 

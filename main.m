@@ -26,15 +26,13 @@ gu{2} = [1.5e-3, 6.5e-3];
 gu{3} = [gu{2}(1)/gu{1}, gu{2}(2)/gu{1}];
 Nu = round(sum(gu{3}, "all"));
 % central inco/h25/inco
-% rows: dx, [L1, L2, ...], [N1, N2, ...]
-gc = cell(4, 1);
+gc = cell(3, 1);
 gc{1} = 1.0e-4;
 gc{2} = [1.5e-3, 5.0e-3, 1.5e-3];
 gc{3} = [gc{2}(1)/gc{1}, gc{2}(2)/gc{1}, gc{2}(3)/gc{1}];
 Nc = round(sum(gc{3}, "all"));
 TCH25 = floor(Nc*5e-3/8e-3); % node # for H25 thermocouple
 % downstream inco/copper
-% rows: dx, [L1, L2, ...], [N1, N2, ...]
 gd = cell(3, 1);
 gd{1} = .25e-3;
 gd{2} = [6.5e-3, 1.5e-3];
@@ -95,10 +93,9 @@ load(filename+".mat")
 %% parameters
 dt = 1.25e-3;    % finite volume time step
 
-r = 5; % future points of data considered
+r = 10; % future points of data considered
 epsilon = 1e-2; % small fraction for newton method
-RTOLh = 1e-3;    % tolerance for relative change in q
-RTOLdh = 1e-2;  % tolerance for relative change in dq
+RTOLh = 1e-3;    % tolerance for relative change in h
 RTOLerror = 1e-6;   % tolerance for relative change in error
 maxIter = 20;   % max iterations    
 hInitial = 1000;   % first guess at h
@@ -109,6 +106,7 @@ dat = readtable(filename);
 totalSteps = length(dat.time);
 hStore = zeros(totalSteps-r-1, 2);
 hStore(1, :) = hInitial;
+
 
 %% time iteration
 % initial temp distribution
