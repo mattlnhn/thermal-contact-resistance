@@ -1,4 +1,4 @@
-%clear; close all; clc;
+%% prep
 clear;
 filename = "20230830_1_5Ncycle8.dat";
 
@@ -29,13 +29,15 @@ gd{3} = [gd{2}(1)/gd{1}, gd{2}(2)/gd{1}];
 Nd = round(sum(gd{3}, "all"));
 
 
-%% section A matrices
+%% precalculate A matrices
 Au = diag(ones(Nu-1, 1), -1) + diag(-2*ones(Nu, 1), 0) + ...
     diag(ones(Nu-1, 1), 1);
 Au(1, 1) = -1; Au(end, end) = -1;
+
 Ac = diag(ones(Nc-1, 1), -1) + diag(-2*ones(Nc, 1), 0) + ...
     diag(ones(Nc-1, 1), 1);
 Ac(1, 1) = -1; Ac(end, end) = -1;
+
 Ad = diag(ones(Nd-1, 1), -1) + diag(-2*ones(Nd, 1), 0) + ...
     diag(ones(Nd-1, 1), 1);
 Ad(1, 1) = -1; Ad(end, end) = -1;
@@ -58,7 +60,7 @@ rho_H25 = [9070 0 0];
 % upstream
 % rows: k, c_p, rho
 % columns: a, b, c where f(T) = a + bT + cT^2
-% layers: material 1, material 2
+% layers: material
 mu = zeros(3, 3, 2);
 mu(1, :, 1) = k_Cu;     mu(2, :, 1) = c_p_Cu;   mu(3, :, 1) = rho_Cu;
 mu(1, :, 2) = k_Inco;   mu(2, :, 2) = c_p_Inco; mu(3, :, 2) = rho_Inco;
@@ -97,7 +99,7 @@ qd(1, :) = qInitial;
 
 %% time iteration upstream
 % initial temp distribution
-initialT = interp1([1; Nu], [dat.T_Cu2(1); dat.T_Inco1(1)], 1:Nu)';
+initialT = interp1([1; Nu], [dat.T_Cu2(1); dat.T_Inco1(1)], (1:Nu)');
 
 for m = 1:totalSteps-r-1
     % reset counters
@@ -110,6 +112,7 @@ for m = 1:totalSteps-r-1
 
     % time data
     time = dat.time(m:m+r);
+    % no. of steps of dt from initial time
     steps = round((time - time(1))/dt);
 
     % temp matrices incl. initial time
@@ -118,9 +121,11 @@ for m = 1:totalSteps-r-1
     TdqL = T;
     TdqR = T;
 
+    % start with previous values of q
     qL = qu(m, 1);
     qR = qu(m, 2);
 
+    % measured data r steps into future
     Y = [dat.T_Cu2(m:m+r)';
         dat.T_Inco1(m:m+r)'];
     Tavg = mean(Y, 1);
@@ -132,7 +137,9 @@ for m = 1:totalSteps-r-1
         preverrorR = errorR;
 
         for n = 1:steps(end)
-            ai = sum(steps<n); % index for average
+            % index for avg temp
+            ai = sum(steps<n);
+            % temp updates
             T(:, n+1) = temp1I_PC_QBC(qL, qR, Tavg(ai), T(:, n), dt, ...
                 gu, mu, Au);
             TdqL(:, n+1) = temp1I_PC_QBC((1+epsilon)*qL, qR, Tavg(ai), ...
@@ -141,7 +148,7 @@ for m = 1:totalSteps-r-1
                 TdqR(:, n), dt, gu, mu, Au);
         end
 
-        % T at sensor locations & measurement times, excl. initial
+        % T at sensor locations & measurement times
         Ts = [T(1, steps+1); T(end, steps+1)];
         TdqLs = [TdqL(1, steps+1); TdqL(end, steps+1)];
         TdqRs = [TdqR(1, steps+1); TdqR(end, steps+1)];
@@ -195,7 +202,7 @@ end
 
 %% time iteration downstream
 % initial temp distribution
-initialT = interp1([1; Nd], [dat.T_Inco2(1); dat.T_Cu3(1)], 1:Nd)';
+initialT = interp1([1; Nd], [dat.T_Inco2(1); dat.T_Cu3(1)], (1:Nd)');
 
 for m = 1:totalSteps-r-1
     % reset counters
@@ -216,9 +223,11 @@ for m = 1:totalSteps-r-1
     TdqL = T;
     TdqR = T;
 
+    % start with previous values of q
     qL = qd(m, 1);
     qR = qd(m, 2);
 
+    % measured data r steps into future
     Y = [dat.T_Inco2(m:m+r)';
         dat.T_Cu3(m:m+r)'];
     Tavg = mean(Y, 1);
@@ -230,7 +239,9 @@ for m = 1:totalSteps-r-1
         preverrorR = errorR;
 
         for n = 1:steps(end)
+            % index for avg temp
             ai = sum(steps<n);
+            % temp updates
             T(:, n+1) = temp1I_PC_QBC(qL, qR, Tavg(ai), T(:, n), dt, ...
                 gd, md, Ad);
             TdqL(:, n+1) = temp1I_PC_QBC((1+epsilon)*qL, qR, Tavg(ai), ...
@@ -239,7 +250,7 @@ for m = 1:totalSteps-r-1
                 TdqR(:, n), dt, gd, md, Ad);
         end
 
-        % T at sensor locations & measurement times, excl. initial
+        % T at sensor locations & measurement times
         Ts = [T(1, steps+1); T(end, steps+1)];
         TdqLs = [TdqL(1, steps+1); TdqL(end, steps+1)];
         TdqRs = [TdqR(1, steps+1); TdqR(end, steps+1)];
@@ -291,6 +302,7 @@ for m = 1:totalSteps-r-1
     fprintf('%.3f%% complete.\n', 100*m/(totalSteps-r-1))
 end
 
+% save relevant boundaries
 qu = qu(:, 2);
 qd = qd(:, 1);
 newfilename = filename+".mat";

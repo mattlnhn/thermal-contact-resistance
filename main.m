@@ -40,13 +40,15 @@ gd{3} = [gd{2}(1)/gd{1}, gd{2}(2)/gd{1}];
 Nd = round(sum(gd{3}, "all"));
 
 
-%% section A matrices
+%% precalculate A matrices
 Au = diag(ones(Nu-1, 1), -1) + diag(-2*ones(Nu, 1), 0) + ...
     diag(ones(Nu-1, 1), 1);
 Au(1, 1) = -1; Au(end, end) = -1;
+
 Ac = diag(ones(Nc-1, 1), -1) + diag(-2*ones(Nc, 1), 0) + ...
     diag(ones(Nc-1, 1), 1);
 Ac(1, 1) = -1; Ac(end, end) = -1;
+
 Ad = diag(ones(Nd-1, 1), -1) + diag(-2*ones(Nd, 1), 0) + ...
     diag(ones(Nd-1, 1), 1);
 Ad(1, 1) = -1; Ad(end, end) = -1;
@@ -69,7 +71,7 @@ rho_H25 = [9070 0 0];
 % upstream
 % rows: k, c_p, rho
 % columns: a, b, c where f(T) = a + bT + cT^2
-% layers: material 1, material 2
+% layers: material
 mu = zeros(3, 3, 2);
 mu(1, :, 1) = k_Cu;     mu(2, :, 1) = c_p_Cu;   mu(3, :, 1) = rho_Cu;
 mu(1, :, 2) = k_Inco;   mu(2, :, 2) = c_p_Inco; mu(3, :, 2) = rho_Inco;
@@ -110,7 +112,7 @@ hStore(1, :) = hInitial;
 
 %% time iteration
 % initial temp distribution
-initialT = interp1([1; TCH25; Nc], [dat.T_Inco1(1); dat.T_H25(1); dat.T_Inco2(1)], 1:Nc)';
+initialT = interp1([1; TCH25; Nc], [dat.T_Inco1(1); dat.T_H25(1); dat.T_Inco2(1)], (1:Nc)');
 
 for m = 1:totalSteps-r-1
     % reset counters
@@ -123,6 +125,7 @@ for m = 1:totalSteps-r-1
 
     % time data
     time = dat.time(m:m+r);
+    % no. of steps of dt from initial time
     steps = round((time - time(1))/dt);
 
     % temp matrices incl. initial time
@@ -131,13 +134,15 @@ for m = 1:totalSteps-r-1
     Tdhu = T;
     Tdhd = T;
 
+    % start with previous values of h
     hu = hStore(m, 1);
     hd = hStore(m, 2);
 
+    % measured data r steps into future
     Y = [dat.T_Inco1(m:m+r)';
         dat.T_H25(m:m+r)';
         dat.T_Inco2(m:m+r)'];
-    Tavg = mean(Y, 'all');
+    Tavg = mean(Y, 1);
 
     while converged == 0
         prevdhu = dhu;
@@ -146,11 +151,14 @@ for m = 1:totalSteps-r-1
         preverrord = errord;
 
         for n = 1:steps(end)
-            T(:, n+1) = temp2I_CR_QBC(qu(m), qd(m), Tavg, ...
+            % index for avg temp
+            ai = sum(steps<n);
+            % temp updates
+            T(:, n+1) = temp2I_CR_QBC(qu(m), qd(m), Tavg(ai), ...
                 T(:, n), dt, [hu hd], gc, mc, Ac);
-            Tdhu(:, n+1) = temp2I_CR_QBC(qu(m), qd(m), Tavg, ...
+            Tdhu(:, n+1) = temp2I_CR_QBC(qu(m), qd(m), Tavg(ai), ...
                 Tdhu(:, n), dt, [(1+epsilon)*hu hd], gc, mc, Ac);
-            Tdhd(:, n+1) = temp2I_CR_QBC(qu(m), qd(m), Tavg, ...
+            Tdhd(:, n+1) = temp2I_CR_QBC(qu(m), qd(m), Tavg(ai), ...
                 Tdhd(:, n), dt, [hu (1+epsilon)*hd], gc, mc, Ac);
         end
 
