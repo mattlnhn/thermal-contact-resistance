@@ -1,5 +1,9 @@
 function mat = materiallookup(material)
+% Dictionary of materials. Add to as required (+ add to dropdowns in gui)
     % [a b c] where f(T) = a + bT + cT^2
+    % k: thermal conductivity [W m-1 K-1]
+    % c_p: specific heat capacity [J kg-1 K-1]
+    % rho: density [kg m-3]
     switch material
         case "Copper"
             k = [385 0 0];

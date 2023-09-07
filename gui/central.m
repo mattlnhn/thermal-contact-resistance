@@ -1,8 +1,10 @@
 function central(app, filename, geom, mat, param, dt)
-
+% Inverse solver for unknown heat transfer coefficients at boundaries
+    %% progress bar
     fig = app.ihcpUIFigure;
     d = uiprogressdlg(fig, 'Title', 'In progress (3 of 3)', 'Message', ...
         'Computing heat transfer coefficients in central section...');
+
     %% section geometry
     gc = geom.cent;
     Nc = round(sum(gc{3}, "all"));
@@ -305,12 +307,14 @@ function central(app, filename, geom, mat, param, dt)
 
     end
     
+    %% write file
     [path, file, ext] = fileparts(filename);
     writematrix(hStore, path+"\h_"+file+ext, "WriteMode", "overwrite");
 
-    close(d)
+    %% tidy up
+    close(d) % kill progress bar
 
-    if app.plotCheck.Value
+    if app.plotCheck.Value % basic plot if asked
         figure()
         plot(-dat.load(1:end-r)/(.25*pi*16.25e-3^2), hStore.^-1, 'r')
         xlabel("Pressure [Pa]")

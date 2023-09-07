@@ -1,6 +1,6 @@
 function upstreamdownstream(app, filename, geom, mat, param, dt)
-    app.IndividualButton.Value
-    app.AverageButton.Value
+% Inverse solver for heat flux in up/downstream sections
+    %% progress bar
     fig = app.ihcpUIFigure;
     d = uiprogressdlg(fig, 'Title', 'In progress (1 of 3)', 'Message', ...
         'Computing heat flux in upstream section...');
@@ -140,6 +140,7 @@ function upstreamdownstream(app, filename, geom, mat, param, dt)
     % initial temp distribution
     initialT = interp1([1; Nd], [dat.T_Inco2(1); dat.T_Cu3(1)], (1:Nd)');
     
+    % rename progress bar
     d = uiprogressdlg(fig, 'Title', 'In progress (2 of 3)', 'Message', ...
         'Computing heat flux in downstream section...');
 
