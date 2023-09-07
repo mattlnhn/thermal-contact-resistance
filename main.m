@@ -13,7 +13,7 @@
 
 %% prep
 clear;
-filename = "20230830_1_5Ncycle8.dat";
+filename = "Data Record -06-09-2023- 14-49_tx.dat";
 
 
 %% section geometry
@@ -31,7 +31,7 @@ gc{1} = 1.0e-4;
 gc{2} = [1.5e-3, 5.0e-3, 1.5e-3];
 gc{3} = [gc{2}(1)/gc{1}, gc{2}(2)/gc{1}, gc{2}(3)/gc{1}];
 Nc = round(sum(gc{3}, "all"));
-TCH25 = floor(Nc*5e-3/8e-3); % node # for H25 thermocouple
+TCH25 = floor(Nc*2.5e-3/8e-3); % node # for H25 thermocouple
 % downstream inco/copper
 gd = cell(3, 1);
 gd{1} = .25e-3;
@@ -93,10 +93,10 @@ load(filename+".mat")
 
 
 %% parameters
-dt = 1.25e-3;    % finite volume time step
+dt = .25e-3;    % finite volume time step
 
-r = 10; % future points of data considered
-epsilon = 1e-2; % small fraction for newton method
+r = 20; % future points of data considered
+epsilon = 1e-6; % small fraction for newton method
 RTOLh = 1e-3;    % tolerance for relative change in h
 RTOLerror = 1e-6;   % tolerance for relative change in error
 maxIter = 20;   % max iterations    
@@ -108,6 +108,14 @@ dat = readtable(filename);
 totalSteps = length(dat.time);
 hStore = zeros(totalSteps-r-1, 2);
 hStore(1, :) = hInitial;
+figure(); hold on;
+plot(dat.time, dat.T_oven, 'k--')
+plot(dat.time, dat.T_Cu1, 'r-')
+plot(dat.time, dat.T_Cu2, 'r--')
+plot(dat.time, dat.T_Inco1, 'b-')
+plot(dat.time, dat.T_H25, 'g-')
+plot(dat.time, dat.T_Inco2, 'b--')
+plot(dat.time, dat.T_Cu3, 'r:')
 
 
 %% time iteration
@@ -209,7 +217,7 @@ for m = 1:totalSteps-r-1
     
     % next step initial temp
     for n = 1:steps(2)
-        initialT = temp2I_CR_QBC(qu(m), qd(m), Tavg, ...
+        initialT = temp2I_CR_QBC(qu(m), qd(m), Tavg(1), ...
                 initialT, dt, [hu hd], gc, mc, Ac);
     end
 

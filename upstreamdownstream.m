@@ -1,6 +1,6 @@
 %% prep
 clear;
-filename = "20230830_1_5Ncycle8.dat";
+filename = "Data Record -06-09-2023- 14-49_tx.dat";
 
 
 %% section geometry
