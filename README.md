@@ -12,9 +12,9 @@ Requirements:
 
 2. Run ihcp_exported.m
 
-    a) Pick file
+    a) Select file
 
-    b) Set parameters
+    b) Set parameters, settings
 
     c) Run
 

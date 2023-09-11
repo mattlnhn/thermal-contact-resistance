@@ -2,96 +2,102 @@ classdef ihcp_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        ihcpUIFigure                matlab.ui.Figure
-        FileMenu                    matlab.ui.container.Menu
-        OpenMenu                    matlab.ui.container.Menu
-        PropertiesMenu              matlab.ui.container.Menu
-        EnforceMenu                 matlab.ui.container.Menu
-        SamematerialMenu            matlab.ui.container.Menu
-        samematerialUC              matlab.ui.container.Menu
-        samematerialCD              matlab.ui.container.Menu
-        ThermocouplesPanel          matlab.ui.container.Panel
-        centreTC                    matlab.ui.control.CheckBox
+        ihcpUIFigure                   matlab.ui.Figure
+        FileMenu                       matlab.ui.container.Menu
+        OpenMenu                       matlab.ui.container.Menu
+        SetcurrentvaluesasdefaultMenu  matlab.ui.container.Menu
+        ResettodefaultMenu             matlab.ui.container.Menu
+        MattLenahan2023Menu            matlab.ui.container.Menu
+        PropertiesMenu                 matlab.ui.container.Menu
+        EnforceMenu                    matlab.ui.container.Menu
+        SamematerialMenu               matlab.ui.container.Menu
+        samematerialUC                 matlab.ui.container.Menu
+        samematerialCD                 matlab.ui.container.Menu
+        PlotPanel                      matlab.ui.container.Panel
+        plotCheck                      matlab.ui.control.CheckBox
+        HeatfluxPanel                  matlab.ui.container.Panel
+        RefreshButton                  matlab.ui.control.Button
+        qCalculated                    matlab.ui.control.CheckBox
+        ThermocouplesPanel             matlab.ui.container.Panel
+        centreTC                       matlab.ui.control.CheckBox
         HeattransfercoefficientsButtonGroup  matlab.ui.container.ButtonGroup
-        AverageButton               matlab.ui.control.RadioButton
-        IndividualButton            matlab.ui.control.RadioButton
-        ML23Label                   matlab.ui.control.Label
-        BrowseButton                matlab.ui.control.Button
-        plotCheck                   matlab.ui.control.CheckBox
-        ParametersPanel             matlab.ui.container.Panel
-        maxIterSpinner              matlab.ui.control.Spinner
-        maxIterSpinnerLabel         matlab.ui.control.Label
-        RTOLerrorEditField          matlab.ui.control.NumericEditField
-        RTOLerrorEditFieldLabel     matlab.ui.control.Label
-        RTOLqhEditField             matlab.ui.control.NumericEditField
-        RTOLqhEditFieldLabel        matlab.ui.control.Label
-        hInitialEditField           matlab.ui.control.NumericEditField
-        hInitialEditFieldLabel      matlab.ui.control.Label
-        qInitialEditField           matlab.ui.control.NumericEditField
-        qInitialEditFieldLabel      matlab.ui.control.Label
-        rSpinner                    matlab.ui.control.Spinner
-        rSpinnerLabel               matlab.ui.control.Label
-        DownstreamPanel             matlab.ui.container.Panel
-        down2length                 matlab.ui.control.NumericEditField
-        LengthEditField_7Label_2    matlab.ui.control.Label
-        down2mat                    matlab.ui.control.DropDown
-        MaterialDropDown_7Label_2   matlab.ui.control.Label
-        downconv                    matlab.ui.control.Lamp
-        ConvergentLamp_3Label       matlab.ui.control.Label
-        downdt                      matlab.ui.control.NumericEditField
-        dxLabel_6                   matlab.ui.control.Label
-        downdx                      matlab.ui.control.NumericEditField
-        dxLabel_5                   matlab.ui.control.Label
-        down1length                 matlab.ui.control.NumericEditField
-        LengthEditField_7Label      matlab.ui.control.Label
-        down1mat                    matlab.ui.control.DropDown
-        MaterialDropDown_7Label     matlab.ui.control.Label
-        Section2Label_5             matlab.ui.control.Label
-        Section1Label_4             matlab.ui.control.Label
-        CentralPanel                matlab.ui.container.Panel
-        centTC                      matlab.ui.control.NumericEditField
-        CentralTCEditFieldLabel     matlab.ui.control.Label
-        cent3length                 matlab.ui.control.NumericEditField
-        LengthEditFieldLabel_5      matlab.ui.control.Label
-        cent3mat                    matlab.ui.control.DropDown
-        MaterialDropDownLabel_5     matlab.ui.control.Label
-        cent2length                 matlab.ui.control.NumericEditField
-        LengthEditFieldLabel_4      matlab.ui.control.Label
-        cent2mat                    matlab.ui.control.DropDown
-        MaterialDropDownLabel_4     matlab.ui.control.Label
-        cent1length                 matlab.ui.control.NumericEditField
-        LengthEditFieldLabel_3      matlab.ui.control.Label
-        cent1mat                    matlab.ui.control.DropDown
-        MaterialDropDownLabel_3     matlab.ui.control.Label
-        centconv                    matlab.ui.control.Lamp
-        ConvergentLamp_2Label       matlab.ui.control.Label
-        centdt                      matlab.ui.control.NumericEditField
-        dxLabel_4                   matlab.ui.control.Label
-        centdx                      matlab.ui.control.NumericEditField
-        dxLabel_3                   matlab.ui.control.Label
-        Section3Label               matlab.ui.control.Label
-        Section2Label_4             matlab.ui.control.Label
-        Section1Label_3             matlab.ui.control.Label
-        UpstreamPanel               matlab.ui.container.Panel
-        up1length                   matlab.ui.control.NumericEditField
-        LengthEditFieldLabel        matlab.ui.control.Label
-        up2length                   matlab.ui.control.NumericEditField
-        LengthEditFieldLabel_2      matlab.ui.control.Label
-        up2mat                      matlab.ui.control.DropDown
-        MaterialDropDownLabel_2     matlab.ui.control.Label
-        upconv                      matlab.ui.control.Lamp
-        ConvergentLampLabel         matlab.ui.control.Label
-        updt                        matlab.ui.control.NumericEditField
-        dxLabel_2                   matlab.ui.control.Label
-        updx                        matlab.ui.control.NumericEditField
-        dxLabel                     matlab.ui.control.Label
-        up1mat                      matlab.ui.control.DropDown
-        MaterialDropDownLabel       matlab.ui.control.Label
-        Section2Label               matlab.ui.control.Label
-        Section1Label               matlab.ui.control.Label
-        RunButton                   matlab.ui.control.Button
-        selectedfile                matlab.ui.control.EditField
-        SelectedfileEditFieldLabel  matlab.ui.control.Label
+        AverageButton                  matlab.ui.control.RadioButton
+        IndividualButton               matlab.ui.control.RadioButton
+        BrowseButton                   matlab.ui.control.Button
+        ParametersPanel                matlab.ui.container.Panel
+        maxIterSpinner                 matlab.ui.control.Spinner
+        maxIterSpinnerLabel            matlab.ui.control.Label
+        RTOLerrorEditField             matlab.ui.control.NumericEditField
+        RTOLerrorEditFieldLabel        matlab.ui.control.Label
+        RTOLqhEditField                matlab.ui.control.NumericEditField
+        RTOLqhEditFieldLabel           matlab.ui.control.Label
+        hInitialEditField              matlab.ui.control.NumericEditField
+        hInitialEditFieldLabel         matlab.ui.control.Label
+        qInitialEditField              matlab.ui.control.NumericEditField
+        qInitialEditFieldLabel         matlab.ui.control.Label
+        rSpinner                       matlab.ui.control.Spinner
+        rSpinnerLabel                  matlab.ui.control.Label
+        DownstreamPanel                matlab.ui.container.Panel
+        down2length                    matlab.ui.control.NumericEditField
+        LengthEditField_7Label_2       matlab.ui.control.Label
+        down2mat                       matlab.ui.control.DropDown
+        MaterialDropDown_7Label_2      matlab.ui.control.Label
+        downconv                       matlab.ui.control.Lamp
+        ConvergentLamp_3Label          matlab.ui.control.Label
+        downdt                         matlab.ui.control.NumericEditField
+        dxLabel_6                      matlab.ui.control.Label
+        downdx                         matlab.ui.control.NumericEditField
+        dxLabel_5                      matlab.ui.control.Label
+        down1length                    matlab.ui.control.NumericEditField
+        LengthEditField_7Label         matlab.ui.control.Label
+        down1mat                       matlab.ui.control.DropDown
+        MaterialDropDown_7Label        matlab.ui.control.Label
+        Section2Label_5                matlab.ui.control.Label
+        Section1Label_4                matlab.ui.control.Label
+        CentralPanel                   matlab.ui.container.Panel
+        centTC                         matlab.ui.control.NumericEditField
+        CentralTCEditFieldLabel        matlab.ui.control.Label
+        cent3length                    matlab.ui.control.NumericEditField
+        LengthEditFieldLabel_5         matlab.ui.control.Label
+        cent3mat                       matlab.ui.control.DropDown
+        MaterialDropDownLabel_5        matlab.ui.control.Label
+        cent2length                    matlab.ui.control.NumericEditField
+        LengthEditFieldLabel_4         matlab.ui.control.Label
+        cent2mat                       matlab.ui.control.DropDown
+        MaterialDropDownLabel_4        matlab.ui.control.Label
+        cent1length                    matlab.ui.control.NumericEditField
+        LengthEditFieldLabel_3         matlab.ui.control.Label
+        cent1mat                       matlab.ui.control.DropDown
+        MaterialDropDownLabel_3        matlab.ui.control.Label
+        centconv                       matlab.ui.control.Lamp
+        ConvergentLamp_2Label          matlab.ui.control.Label
+        centdt                         matlab.ui.control.NumericEditField
+        dxLabel_4                      matlab.ui.control.Label
+        centdx                         matlab.ui.control.NumericEditField
+        dxLabel_3                      matlab.ui.control.Label
+        Section3Label                  matlab.ui.control.Label
+        Section2Label_4                matlab.ui.control.Label
+        Section1Label_3                matlab.ui.control.Label
+        UpstreamPanel                  matlab.ui.container.Panel
+        up1length                      matlab.ui.control.NumericEditField
+        LengthEditFieldLabel           matlab.ui.control.Label
+        up2length                      matlab.ui.control.NumericEditField
+        LengthEditFieldLabel_2         matlab.ui.control.Label
+        up2mat                         matlab.ui.control.DropDown
+        MaterialDropDownLabel_2        matlab.ui.control.Label
+        upconv                         matlab.ui.control.Lamp
+        ConvergentLampLabel            matlab.ui.control.Label
+        updt                           matlab.ui.control.NumericEditField
+        dxLabel_2                      matlab.ui.control.Label
+        updx                           matlab.ui.control.NumericEditField
+        dxLabel                        matlab.ui.control.Label
+        up1mat                         matlab.ui.control.DropDown
+        MaterialDropDownLabel          matlab.ui.control.Label
+        Section2Label                  matlab.ui.control.Label
+        Section1Label                  matlab.ui.control.Label
+        RunButton                      matlab.ui.control.Button
+        selectedfile                   matlab.ui.control.EditField
+        SelectedfileEditFieldLabel     matlab.ui.control.Label
     end
 
     
@@ -107,7 +113,7 @@ classdef ihcp_exported < matlab.apps.AppBase
             mat1d = materiallookup(app.down1mat.Value);
             mat2d = materiallookup(app.down2mat.Value);
 
-            T = 20;
+            T = 25; % room temp
             % calculate all tau
             % upstream
             k1u = mat1u(1, 1) + T*mat1u(1, 2) + T^2*mat1u(1, 3);
@@ -187,10 +193,101 @@ classdef ihcp_exported < matlab.apps.AppBase
             [file, path] = uigetfile({'*.*'; '*.csv'; '*.dat'; ...
                 '*.txt'}, "Open...");
             delete(f);
+            % if file selected i.e. user doesn't cancel
             if file ~= 0
                 app.selectedfile.Value = fullfile(path, file);
                 app.RunButton.Enable = "on";
             end
+            % if matching .mat file exists
+            if exist(fullfile(path, file)+".mat", "file") == 2
+                app.qCalculated.Enable = "on";
+            else
+                app.qCalculated.Enable = "off";
+            end
+        end
+
+        function savestate(app)
+            state.up1mat.Value = app.up1mat.Value;
+            state.up1length.Value = app.up1length.Value;
+            state.up2mat.Value = app.up2mat.Value;
+            state.up2length.Value = app.up2length.Value;
+            state.updx.Value = app.updx.Value;
+            state.updt.Value = app.updt.Value;
+
+            state.cent1mat.Value = app.cent1mat.Value;
+            state.cent1length.Value = app.cent1length.Value;
+            state.cent2mat.Value = app.cent2mat.Value;
+            state.cent2length.Value = app.cent2length.Value;
+            state.centTC.Value = app.centTC.Value;
+            state.cent3mat.Value = app.cent3mat.Value;
+            state.cent3length.Value = app.cent3length.Value;
+            state.centdx.Value = app.centdx.Value;
+            state.centdt.Value = app.centdt.Value;
+
+            state.down1mat.Value = app.down1mat.Value;
+            state.down1length.Value = app.down1length.Value;
+            state.down2mat.Value = app.down2mat.Value;
+            state.down2length.Value = app.down2length.Value;
+            state.downdx.Value = app.downdx.Value;
+            state.downdt.Value = app.downdt.Value;
+
+            state.rSpinner.Value = app.rSpinner.Value;
+            state.qInitialEditField.Value = app.qInitialEditField.Value;
+            state.hInitialEditField.Value = app.hInitialEditField.Value;
+            state.RTOLqhEditField.Value = app.RTOLqhEditField.Value;
+            state.RTOLerrorEditField.Value = app.RTOLerrorEditField.Value;
+            state.maxIterSpinner.Value = app.maxIterSpinner.Value;
+
+            state.plotCheck.Value = app.plotCheck.Value;
+            state.centreTC.Value = app.centreTC.Value;
+            state.AverageButton.Value = app.AverageButton.Value;
+            state.IndividualButton.Value = app.IndividualButton.Value;
+            state.qCalculated.Value = app.qCalculated.Value;
+
+            save("defaultState.mat", "state")
+        end
+
+        function loadstate(app)
+            load("defaultState.mat", "state")
+
+            app.up1mat.Value = state.up1mat.Value;
+            app.up1length.Value = state.up1length.Value;
+            app.up2mat.Value = state.up2mat.Value;
+            app.up2length.Value = state.up2length.Value;
+            app.updx.Value = state.updx.Value;
+            app.updt.Value = state.updt.Value;
+
+            app.cent1mat.Value = state.cent1mat.Value;
+            app.cent1length.Value = state.cent1length.Value;
+            app.cent2mat.Value = state.cent2mat.Value;
+            app.cent2length.Value = state.cent2length.Value;
+            app.centTC.Value = state.centTC.Value;
+            app.cent3mat.Value = state.cent3mat.Value;
+            app.cent3length.Value = state.cent3length.Value;
+            app.centdx.Value = state.centdx.Value;
+            app.centdt.Value = state.centdt.Value;
+
+            app.down1mat.Value = state.down1mat.Value;
+            app.down1length.Value = state.down1length.Value;
+            app.down2mat.Value = state.down2mat.Value;
+            app.down2length.Value = state.down2length.Value;
+            app.downdx.Value = state.downdx.Value;
+            app.downdt.Value = state.downdt.Value;
+
+            app.rSpinner.Value = state.rSpinner.Value;
+            app.qInitialEditField.Value = state.qInitialEditField.Value;
+            app.hInitialEditField.Value = state.hInitialEditField.Value;
+            app.RTOLqhEditField.Value = state.RTOLqhEditField.Value;
+            app.RTOLerrorEditField.Value = state.RTOLerrorEditField.Value;
+            app.maxIterSpinner.Value = state.maxIterSpinner.Value;
+
+            app.plotCheck.Value = state.plotCheck.Value;
+            app.centreTC.Value = state.centreTC.Value;
+            app.AverageButton.Value = state.AverageButton.Value;
+            app.IndividualButton.Value = state.IndividualButton.Value;
+            app.qCalculated.Value = state.qCalculated.Value;
+
+            checkconvergence(app)
         end
 
     end
@@ -207,6 +304,10 @@ classdef ihcp_exported < matlab.apps.AppBase
             % button icon
             app.RunButton.Icon = fullfile(matlabroot,'ui','install',...
                 'installer_login','images','toolstrip','Run_24.png');
+            try loadstate(app)
+            catch
+                uialert(app.ihcpUIFigure, "No defaults found.", "Warning", Icon="warning")
+            end
         end
 
         % Menu selected function: OpenMenu
@@ -359,6 +460,29 @@ classdef ihcp_exported < matlab.apps.AppBase
                 app.centTC.Enable = "off";
             end
         end
+
+        % Button pushed function: RefreshButton
+        function RefreshButtonPushed(app, event)
+            % if file selected
+            if exist("file", "var")
+                % if matching .mat file exists
+                if exist(fullfile(path, file)+".mat", "file") == 2
+                    app.qCalculated.Enable = "on";
+                else
+                    app.qCalculated.Enable = "off";
+                end
+            end
+        end
+
+        % Menu selected function: SetcurrentvaluesasdefaultMenu
+        function SetcurrentvaluesasdefaultMenuSelected(app, event)
+            savestate(app)
+        end
+
+        % Menu selected function: ResettodefaultMenu
+        function ResettodefaultMenuSelected(app, event)
+            loadstate(app)
+        end
     end
 
     % Component initialization
@@ -371,7 +495,6 @@ classdef ihcp_exported < matlab.apps.AppBase
             app.ihcpUIFigure = uifigure('Visible', 'off');
             app.ihcpUIFigure.Position = [100 100 659 750];
             app.ihcpUIFigure.Name = 'ihcp';
-            app.ihcpUIFigure.Resize = 'off';
 
             % Create FileMenu
             app.FileMenu = uimenu(app.ihcpUIFigure);
@@ -382,6 +505,24 @@ classdef ihcp_exported < matlab.apps.AppBase
             app.OpenMenu.MenuSelectedFcn = createCallbackFcn(app, @OpenMenuSelected, true);
             app.OpenMenu.Accelerator = 'o';
             app.OpenMenu.Text = 'Open...';
+
+            % Create SetcurrentvaluesasdefaultMenu
+            app.SetcurrentvaluesasdefaultMenu = uimenu(app.FileMenu);
+            app.SetcurrentvaluesasdefaultMenu.MenuSelectedFcn = createCallbackFcn(app, @SetcurrentvaluesasdefaultMenuSelected, true);
+            app.SetcurrentvaluesasdefaultMenu.Accelerator = 'd';
+            app.SetcurrentvaluesasdefaultMenu.Text = 'Set current values as default';
+
+            % Create ResettodefaultMenu
+            app.ResettodefaultMenu = uimenu(app.FileMenu);
+            app.ResettodefaultMenu.MenuSelectedFcn = createCallbackFcn(app, @ResettodefaultMenuSelected, true);
+            app.ResettodefaultMenu.Accelerator = 'r';
+            app.ResettodefaultMenu.Text = 'Reset to default';
+
+            % Create MattLenahan2023Menu
+            app.MattLenahan2023Menu = uimenu(app.FileMenu);
+            app.MattLenahan2023Menu.ForegroundColor = [0.149 0.149 0.149];
+            app.MattLenahan2023Menu.Enable = 'off';
+            app.MattLenahan2023Menu.Text = 'Matt Lenahan 2023';
 
             % Create PropertiesMenu
             app.PropertiesMenu = uimenu(app.ihcpUIFigure);
@@ -420,14 +561,14 @@ classdef ihcp_exported < matlab.apps.AppBase
             app.RunButton = uibutton(app.ihcpUIFigure, 'push');
             app.RunButton.ButtonPushedFcn = createCallbackFcn(app, @RunButtonPushed, true);
             app.RunButton.Enable = 'off';
-            app.RunButton.Position = [461 41 180 90];
+            app.RunButton.Position = [462 11 180 110];
             app.RunButton.Text = 'Run';
 
             % Create UpstreamPanel
             app.UpstreamPanel = uipanel(app.ihcpUIFigure);
             app.UpstreamPanel.Title = 'Upstream';
             app.UpstreamPanel.FontWeight = 'bold';
-            app.UpstreamPanel.Position = [21 521 430 170];
+            app.UpstreamPanel.Position = [22 521 430 170];
 
             % Create Section1Label
             app.Section1Label = uilabel(app.UpstreamPanel);
@@ -529,138 +670,138 @@ classdef ihcp_exported < matlab.apps.AppBase
             app.CentralPanel = uipanel(app.ihcpUIFigure);
             app.CentralPanel.Title = 'Central';
             app.CentralPanel.FontWeight = 'bold';
-            app.CentralPanel.Position = [21 321 620 190];
+            app.CentralPanel.Position = [22 311 620 200];
 
             % Create Section1Label_3
             app.Section1Label_3 = uilabel(app.CentralPanel);
-            app.Section1Label_3.Position = [80 138 60 22];
+            app.Section1Label_3.Position = [80 148 60 22];
             app.Section1Label_3.Text = 'Section 1';
 
             % Create Section2Label_4
             app.Section2Label_4 = uilabel(app.CentralPanel);
-            app.Section2Label_4.Position = [280 138 60 22];
+            app.Section2Label_4.Position = [280 148 60 22];
             app.Section2Label_4.Text = 'Section 2';
 
             % Create Section3Label
             app.Section3Label = uilabel(app.CentralPanel);
-            app.Section3Label.Position = [482 137 60 22];
+            app.Section3Label.Position = [482 147 60 22];
             app.Section3Label.Text = 'Section 3';
 
             % Create dxLabel_3
             app.dxLabel_3 = uilabel(app.CentralPanel);
             app.dxLabel_3.HorizontalAlignment = 'right';
-            app.dxLabel_3.Position = [41 20 30 19];
+            app.dxLabel_3.Position = [40 20 30 19];
             app.dxLabel_3.Text = 'dx';
 
             % Create centdx
             app.centdx = uieditfield(app.CentralPanel, 'numeric');
             app.centdx.Limits = [0 Inf];
             app.centdx.ValueChangedFcn = createCallbackFcn(app, @centdxValueChanged, true);
-            app.centdx.Position = [81 20 81 20];
+            app.centdx.Position = [80 20 81 20];
             app.centdx.Value = 0.0001;
 
             % Create dxLabel_4
             app.dxLabel_4 = uilabel(app.CentralPanel);
             app.dxLabel_4.HorizontalAlignment = 'right';
-            app.dxLabel_4.Position = [151 20 30 19];
+            app.dxLabel_4.Position = [150 20 30 19];
             app.dxLabel_4.Text = 'dt';
 
             % Create centdt
             app.centdt = uieditfield(app.CentralPanel, 'numeric');
             app.centdt.Limits = [0 Inf];
             app.centdt.ValueChangedFcn = createCallbackFcn(app, @centdxValueChanged, true);
-            app.centdt.Position = [191 20 81 20];
+            app.centdt.Position = [190 20 81 20];
             app.centdt.Value = 0.00125;
 
             % Create ConvergentLamp_2Label
             app.ConvergentLamp_2Label = uilabel(app.CentralPanel);
             app.ConvergentLamp_2Label.HorizontalAlignment = 'right';
-            app.ConvergentLamp_2Label.Position = [302 19 67 20];
+            app.ConvergentLamp_2Label.Position = [301 19 67 20];
             app.ConvergentLamp_2Label.Text = 'Convergent';
 
             % Create centconv
             app.centconv = uilamp(app.CentralPanel);
-            app.centconv.Position = [382 24 10 10];
+            app.centconv.Position = [381 24 10 10];
 
             % Create MaterialDropDownLabel_3
             app.MaterialDropDownLabel_3 = uilabel(app.CentralPanel);
             app.MaterialDropDownLabel_3.HorizontalAlignment = 'right';
-            app.MaterialDropDownLabel_3.Position = [10 108 58 21];
+            app.MaterialDropDownLabel_3.Position = [10 118 58 21];
             app.MaterialDropDownLabel_3.Text = 'Material';
 
             % Create cent1mat
             app.cent1mat = uidropdown(app.CentralPanel);
             app.cent1mat.Items = {'Copper', 'Inconel 718', 'Haynes 25'};
             app.cent1mat.ValueChangedFcn = createCallbackFcn(app, @up1matValueChanged, true);
-            app.cent1mat.Position = [80 109 120 20];
+            app.cent1mat.Position = [80 119 120 20];
             app.cent1mat.Value = 'Inconel 718';
 
             % Create LengthEditFieldLabel_3
             app.LengthEditFieldLabel_3 = uilabel(app.CentralPanel);
             app.LengthEditFieldLabel_3.HorizontalAlignment = 'right';
-            app.LengthEditFieldLabel_3.Position = [11 79 60 20];
+            app.LengthEditFieldLabel_3.Position = [11 89 60 20];
             app.LengthEditFieldLabel_3.Text = 'Length';
 
             % Create cent1length
             app.cent1length = uieditfield(app.CentralPanel, 'numeric');
             app.cent1length.Limits = [0 Inf];
-            app.cent1length.Position = [80 79 120 20];
+            app.cent1length.Position = [80 89 120 20];
             app.cent1length.Value = 0.0015;
 
             % Create MaterialDropDownLabel_4
             app.MaterialDropDownLabel_4 = uilabel(app.CentralPanel);
             app.MaterialDropDownLabel_4.HorizontalAlignment = 'right';
-            app.MaterialDropDownLabel_4.Position = [210 108 58 21];
+            app.MaterialDropDownLabel_4.Position = [210 118 58 21];
             app.MaterialDropDownLabel_4.Text = 'Material';
 
             % Create cent2mat
             app.cent2mat = uidropdown(app.CentralPanel);
             app.cent2mat.Items = {'Copper', 'Inconel 718', 'Haynes 25'};
             app.cent2mat.ValueChangedFcn = createCallbackFcn(app, @up1matValueChanged, true);
-            app.cent2mat.Position = [280 109 120 20];
+            app.cent2mat.Position = [280 119 120 20];
             app.cent2mat.Value = 'Haynes 25';
 
             % Create LengthEditFieldLabel_4
             app.LengthEditFieldLabel_4 = uilabel(app.CentralPanel);
             app.LengthEditFieldLabel_4.HorizontalAlignment = 'right';
-            app.LengthEditFieldLabel_4.Position = [211 79 60 20];
+            app.LengthEditFieldLabel_4.Position = [211 89 60 20];
             app.LengthEditFieldLabel_4.Text = 'Length';
 
             % Create cent2length
             app.cent2length = uieditfield(app.CentralPanel, 'numeric');
             app.cent2length.Limits = [0 Inf];
-            app.cent2length.Position = [281 79 119 20];
+            app.cent2length.Position = [281 89 119 20];
             app.cent2length.Value = 0.005;
 
             % Create MaterialDropDownLabel_5
             app.MaterialDropDownLabel_5 = uilabel(app.CentralPanel);
             app.MaterialDropDownLabel_5.HorizontalAlignment = 'right';
-            app.MaterialDropDownLabel_5.Position = [409 109 58 21];
+            app.MaterialDropDownLabel_5.Position = [409 119 58 21];
             app.MaterialDropDownLabel_5.Text = 'Material';
 
             % Create cent3mat
             app.cent3mat = uidropdown(app.CentralPanel);
             app.cent3mat.Items = {'Copper', 'Inconel 718', 'Haynes 25'};
             app.cent3mat.ValueChangedFcn = createCallbackFcn(app, @up1matValueChanged, true);
-            app.cent3mat.Position = [479 110 120 20];
+            app.cent3mat.Position = [479 120 120 20];
             app.cent3mat.Value = 'Inconel 718';
 
             % Create LengthEditFieldLabel_5
             app.LengthEditFieldLabel_5 = uilabel(app.CentralPanel);
             app.LengthEditFieldLabel_5.HorizontalAlignment = 'right';
-            app.LengthEditFieldLabel_5.Position = [410 80 60 20];
+            app.LengthEditFieldLabel_5.Position = [410 90 60 20];
             app.LengthEditFieldLabel_5.Text = 'Length';
 
             % Create cent3length
             app.cent3length = uieditfield(app.CentralPanel, 'numeric');
             app.cent3length.Limits = [0 Inf];
-            app.cent3length.Position = [479 80 120 20];
+            app.cent3length.Position = [479 90 120 20];
             app.cent3length.Value = 0.0015;
 
             % Create CentralTCEditFieldLabel
             app.CentralTCEditFieldLabel = uilabel(app.CentralPanel);
             app.CentralTCEditFieldLabel.HorizontalAlignment = 'right';
-            app.CentralTCEditFieldLabel.Position = [211 49 60 20];
+            app.CentralTCEditFieldLabel.Position = [211 59 60 20];
             app.CentralTCEditFieldLabel.Text = 'Central TC';
 
             % Create centTC
@@ -668,14 +809,14 @@ classdef ihcp_exported < matlab.apps.AppBase
             app.centTC.Limits = [0 Inf];
             app.centTC.ValueChangedFcn = createCallbackFcn(app, @centTCValueChanged, true);
             app.centTC.Tooltip = {'Distance into the central piece of material, from the left edge'};
-            app.centTC.Position = [281 49 120 20];
+            app.centTC.Position = [281 59 120 20];
             app.centTC.Value = 0.0015;
 
             % Create DownstreamPanel
             app.DownstreamPanel = uipanel(app.ihcpUIFigure);
             app.DownstreamPanel.Title = 'Downstream';
             app.DownstreamPanel.FontWeight = 'bold';
-            app.DownstreamPanel.Position = [21 141 430 170];
+            app.DownstreamPanel.Position = [22 131 430 170];
 
             % Create Section1Label_4
             app.Section1Label_4 = uilabel(app.DownstreamPanel);
@@ -779,7 +920,7 @@ classdef ihcp_exported < matlab.apps.AppBase
             app.ParametersPanel = uipanel(app.ihcpUIFigure);
             app.ParametersPanel.Title = 'Parameters';
             app.ParametersPanel.FontWeight = 'bold';
-            app.ParametersPanel.Position = [21 21 430 110];
+            app.ParametersPanel.Position = [22 11 430 110];
 
             % Create rSpinnerLabel
             app.rSpinnerLabel = uilabel(app.ParametersPanel);
@@ -853,53 +994,70 @@ classdef ihcp_exported < matlab.apps.AppBase
             app.maxIterSpinner.Position = [60 19 61 20];
             app.maxIterSpinner.Value = 20;
 
-            % Create plotCheck
-            app.plotCheck = uicheckbox(app.ihcpUIFigure);
-            app.plotCheck.Text = 'Generate plot on exit';
-            app.plotCheck.Position = [462 18 133 22];
-
             % Create BrowseButton
             app.BrowseButton = uibutton(app.ihcpUIFigure, 'push');
             app.BrowseButton.ButtonPushedFcn = createCallbackFcn(app, @BrowseButtonPushed, true);
             app.BrowseButton.Position = [561 711 80 20];
             app.BrowseButton.Text = 'Browse...';
 
-            % Create ML23Label
-            app.ML23Label = uilabel(app.ihcpUIFigure);
-            app.ML23Label.HorizontalAlignment = 'right';
-            app.ML23Label.FontColor = [0.651 0.651 0.651];
-            app.ML23Label.Position = [600 18 41 22];
-            app.ML23Label.Text = 'ML 23';
-
             % Create HeattransfercoefficientsButtonGroup
             app.HeattransfercoefficientsButtonGroup = uibuttongroup(app.ihcpUIFigure);
             app.HeattransfercoefficientsButtonGroup.Title = 'Heat transfer coefficients';
             app.HeattransfercoefficientsButtonGroup.FontWeight = 'bold';
-            app.HeattransfercoefficientsButtonGroup.Position = [462 141 179 169];
+            app.HeattransfercoefficientsButtonGroup.Position = [462 221 180 80];
 
             % Create IndividualButton
             app.IndividualButton = uiradiobutton(app.HeattransfercoefficientsButtonGroup);
             app.IndividualButton.Text = 'Individual';
-            app.IndividualButton.Position = [11 123 73 22];
+            app.IndividualButton.Position = [11 34 73 22];
             app.IndividualButton.Value = true;
 
             % Create AverageButton
             app.AverageButton = uiradiobutton(app.HeattransfercoefficientsButtonGroup);
             app.AverageButton.Text = 'Average';
-            app.AverageButton.Position = [11 101 66 22];
+            app.AverageButton.Position = [11 12 66 22];
 
             % Create ThermocouplesPanel
             app.ThermocouplesPanel = uipanel(app.ihcpUIFigure);
             app.ThermocouplesPanel.Title = 'Thermocouples';
             app.ThermocouplesPanel.FontWeight = 'bold';
-            app.ThermocouplesPanel.Position = [461 521 180 170];
+            app.ThermocouplesPanel.Position = [462 521 180 80];
 
             % Create centreTC
             app.centreTC = uicheckbox(app.ThermocouplesPanel);
             app.centreTC.ValueChangedFcn = createCallbackFcn(app, @centreTCValueChanged, true);
             app.centreTC.Text = 'Use TC in central piece';
-            app.centreTC.Position = [11 117 147 22];
+            app.centreTC.Position = [11 29 147 20];
             app.centreTC.Value = true;
+
+            % Create HeatfluxPanel
+            app.HeatfluxPanel = uipanel(app.ihcpUIFigure);
+            app.HeatfluxPanel.Title = 'Heat flux';
+            app.HeatfluxPanel.FontWeight = 'bold';
+            app.HeatfluxPanel.Position = [462 131 180 80];
+
+            % Create qCalculated
+            app.qCalculated = uicheckbox(app.HeatfluxPanel);
+            app.qCalculated.Enable = 'off';
+            app.qCalculated.Text = 'Use existing q';
+            app.qCalculated.Position = [11 29 97 20];
+
+            % Create RefreshButton
+            app.RefreshButton = uibutton(app.HeatfluxPanel, 'push');
+            app.RefreshButton.ButtonPushedFcn = createCallbackFcn(app, @RefreshButtonPushed, true);
+            app.RefreshButton.Position = [121 29 50 20];
+            app.RefreshButton.Text = 'Refresh';
+
+            % Create PlotPanel
+            app.PlotPanel = uipanel(app.ihcpUIFigure);
+            app.PlotPanel.Title = 'Plot';
+            app.PlotPanel.FontWeight = 'bold';
+            app.PlotPanel.Position = [462 611 180 80];
+
+            % Create plotCheck
+            app.plotCheck = uicheckbox(app.PlotPanel);
+            app.plotCheck.Text = 'Generate plot on exit';
+            app.plotCheck.Position = [10 32 133 19];
 
             % Show the figure after all components are created
             app.ihcpUIFigure.Visible = 'on';

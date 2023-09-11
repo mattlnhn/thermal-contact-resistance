@@ -23,7 +23,7 @@ function central(app, filename, geom, mat, param, dt)
   
     %% parameters
     r = param.r;
-    epsilon = 1e-2;
+    epsilon = 1e-6;
     RTOLh = param.RTOLqh;
     RTOLerror = param.RTOLerror;
     maxIter = param.maxiter;

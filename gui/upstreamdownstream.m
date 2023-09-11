@@ -1,5 +1,11 @@
 function upstreamdownstream(app, filename, geom, mat, param, dt)
 % Inverse solver for heat flux in up/downstream sections
+
+    %% if heat flux has already been calculated
+    if app.qCalculated.Value
+        return;
+    end
+
     %% progress bar
     fig = app.ihcpUIFigure;
     d = uiprogressdlg(fig, 'Title', 'In progress (1 of 3)', 'Message', ...
