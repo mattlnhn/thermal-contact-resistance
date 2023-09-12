@@ -4,6 +4,8 @@
 
 Explanation of the maths behind this code can be found in the .pdf.
 
+prepdata.m is a function to deal with errors in data gathering. It removes duplicate rows which would appear to give zero heat flux.
+
 Requirements:
 
 0. Clone repo

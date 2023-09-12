@@ -5,6 +5,9 @@ function central(app, filename, geom, mat, param, dt)
     d = uiprogressdlg(fig, 'Title', 'In progress (3 of 3)', 'Message', ...
         'Computing heat transfer coefficients in central section...');
 
+%     figure();
+%     hold on
+
     %% section geometry
     gc = geom.cent;
     Nc = round(sum(gc{3}, "all"));
@@ -23,7 +26,7 @@ function central(app, filename, geom, mat, param, dt)
   
     %% parameters
     r = param.r;
-    epsilon = 1e-6;
+    epsilon = 1e-2;
     RTOLh = param.RTOLqh;
     RTOLerror = param.RTOLerror;
     maxIter = param.maxiter;
@@ -32,7 +35,7 @@ function central(app, filename, geom, mat, param, dt)
     %% import
     dat = readtable(filename);
     totalSteps = length(dat.time);
-    hStore = zeros(totalSteps-r-1, 2);
+    hStore = zeros(totalSteps-2*r, 2);
     hStore(1, :) = hInitial;
     
     %% time iteration
@@ -41,7 +44,7 @@ function central(app, filename, geom, mat, param, dt)
     
     if app.IndividualButton.Value == 1 % individual htcs
 
-        for m = 1:totalSteps-r-1
+        for m = 1:totalSteps-2*r
             % reset counters
             converged = 0;
             iter = 1;
@@ -64,9 +67,9 @@ function central(app, filename, geom, mat, param, dt)
             hd = hStore(m, 2);
         
             % measured data r steps into future
-            Y = [dat.T_Inco1(m:m+r)';
-                dat.T_H25(m:m+r)';
-                dat.T_Inco2(m:m+r)'];
+            Y = [dat.T_Inco1(m+1:m+r)';
+                dat.T_H25(m+1:m+r)';
+                dat.T_Inco2(m+1:m+r)'];
             Tavg = mean(Y, 1);
         
             while converged == 0
@@ -77,18 +80,18 @@ function central(app, filename, geom, mat, param, dt)
                     % index for avg temp
                     ai = sum(steps<n);
                     % temp updates
-                    T(:, n+1) = temp2I_CR_QBC(qu(m), qd(m), Tavg(ai), ...
+                    T(:, n+1) = temp2I_CR_QBC(qu(m+ai), qd(m+ai), Tavg(ai), ...
                         T(:, n), dt, [hu hd], gc, mc, Ac);
-                    Tdhu(:, n+1) = temp2I_CR_QBC(qu(m), qd(m), Tavg(ai), ...
+                    Tdhu(:, n+1) = temp2I_CR_QBC(qu(m+ai), qd(m+ai), Tavg(ai), ...
                         Tdhu(:, n), dt, [(1+epsilon)*hu hd], gc, mc, Ac);
-                    Tdhd(:, n+1) = temp2I_CR_QBC(qu(m), qd(m), Tavg(ai), ...
+                    Tdhd(:, n+1) = temp2I_CR_QBC(qu(m+ai), qd(m+ai), Tavg(ai), ...
                         Tdhd(:, n), dt, [hu (1+epsilon)*hd], gc, mc, Ac);
                 end
         
                 % T at sensor locations & measurement times, excl. initial
-                Ts = [T(1, steps+1); T(TCH25, steps+1); T(end, steps+1)];
-                Tdhus = [Tdhu(1, steps+1); Tdhu(TCH25, steps+1); Tdhu(end, steps+1)];
-                Tdhds = [Tdhd(1, steps+1); Tdhd(TCH25, steps+1); Tdhd(end, steps+1)];
+                Ts = [T(1, steps(2:end)+1); T(TCH25, steps(2:end)+1); T(end, steps(2:end)+1)];
+                Tdhus = [Tdhu(1, steps(2:end)+1); Tdhu(TCH25, steps(2:end)+1); Tdhu(end, steps(2:end)+1)];
+                Tdhds = [Tdhd(1, steps(2:end)+1); Tdhd(TCH25, steps(2:end)+1); Tdhd(end, steps(2:end)+1)];
         
                 % sensitivity coefficients
                 Xu = (Tdhus - Ts)./(epsilon*hu);
@@ -128,17 +131,17 @@ function central(app, filename, geom, mat, param, dt)
             hStore(m+1, 2) = hd;
             
             % next step initial temp
-            for n = 1:steps(2)
-                initialT = temp2I_CR_QBC(qu(m), qd(m), Tavg(1), ...
+            for n = 1:steps(2)+1
+                initialT = temp2I_CR_QBC(qu(m+1), qd(m+1), Tavg(1), ...
                         initialT, dt, [hu hd], gc, mc, Ac);
             end
         
-            d.Value = m/(totalSteps-r-1);
+            d.Value = m/(totalSteps-2*r);
         end
 
-    elseif app.centreTC == 1 % avg htc, including centre tc
+    elseif app.centreTC.Value == 1 % avg htc, including centre tc
 
-        for m = 1:totalSteps-r-1
+        for m = 1:totalSteps-2*r
             % reset counters
             converged = 0;
             iter = 1;
@@ -158,9 +161,9 @@ function central(app, filename, geom, mat, param, dt)
             h = hStore(m, 1);
         
             % measured data r steps into future
-            Y = [dat.T_Inco1(m:m+r)';
-                dat.T_H25(m:m+r)';
-                dat.T_Inco2(m:m+r)'];
+            Y = [dat.T_Inco1(m+1:m+r)';
+                dat.T_H25(m+1:m+r)';
+                dat.T_Inco2(m+1:m+r)'];
             Tavg = mean(Y, 1);
         
             while converged == 0
@@ -170,15 +173,16 @@ function central(app, filename, geom, mat, param, dt)
                     % index for avg temp
                     ai = sum(steps<n);
                     % temp updates
-                    T(:, n+1) = temp2I_CR_QBC(qu(m), qd(m), Tavg(ai), ...
+                    % m+1?
+                    T(:, n+1) = temp2I_CR_QBC(qu(m+ai), qd(m+ai), Tavg(ai), ...
                         T(:, n), dt, [h h], gc, mc, Ac);
-                    Tdh(:, n+1) = temp2I_CR_QBC(qu(m), qd(m), Tavg(ai), ...
+                    Tdh(:, n+1) = temp2I_CR_QBC(qu(m+ai), qd(m+ai), Tavg(ai), ...
                         Tdh(:, n), dt, (1+epsilon)*[h h], gc, mc, Ac);
                 end
         
                 % T at sensor locations & measurement times, excl. initial
-                Ts = [T(1, steps+1); T(TCH25, steps+1); T(end, steps+1)];
-                Tdhs = [Tdh(1, steps+1); Tdh(TCH25, steps+1); Tdh(end, steps+1)];
+                Ts = [T(1, steps(2:end)+1); T(TCH25, steps(2:end)+1); T(end, steps(2:end)+1)];
+                Tdhs = [Tdh(1, steps(2:end)+1); Tdh(TCH25, steps(2:end)+1); Tdh(end, steps(2:end)+1)];
 
                 % sensitivity coefficients
                 X = (Tdhs - Ts)./(epsilon*h);
@@ -211,19 +215,21 @@ function central(app, filename, geom, mat, param, dt)
             % save q
             hStore(m+1, 1) = h;
             hStore(m+1, 2) = h;
-            
-            % next step initial temp
-            for n = 1:steps(2)
-                initialT = temp2I_CR_QBC(qu(m), qd(m), Tavg(1), ...
+
+%             plot(m, h, 'x')
+%             drawnow limitrate
+
+            for n = 1:steps(2)+1 % +1?
+                initialT = temp2I_CR_QBC(qu(m+1), qd(m+1), Tavg(1), ...
                         initialT, dt, [h h], gc, mc, Ac);
             end
         
-            d.Value = m/(totalSteps-r-1);
+            d.Value = m/(totalSteps-2*r);
         end
 
     else % avg htc, excluding centre tc
 
-        for m = 1:totalSteps-r-1
+        for m = 1:totalSteps-2*r
             % reset counters
             converged = 0;
             iter = 1;
@@ -243,8 +249,8 @@ function central(app, filename, geom, mat, param, dt)
             h = hStore(m, 1);
         
             % measured data r steps into future
-            Y = [dat.T_Inco1(m:m+r)';
-                dat.T_Inco2(m:m+r)'];
+            Y = [dat.T_Inco1(m+1:m+r)';
+                dat.T_Inco2(m+1:m+r)'];
             Tavg = mean(Y, 1);
         
             while converged == 0
@@ -254,15 +260,15 @@ function central(app, filename, geom, mat, param, dt)
                     % index for avg temp
                     ai = sum(steps<n);
                     % temp updates
-                    T(:, n+1) = temp2I_CR_QBC(qu(m), qd(m), Tavg(ai), ...
+                    T(:, n+1) = temp2I_CR_QBC(qu(m+ai), qd(m+ai), Tavg(ai), ...
                         T(:, n), dt, [h h], gc, mc, Ac);
-                    Tdh(:, n+1) = temp2I_CR_QBC(qu(m), qd(m), Tavg(ai), ...
+                    Tdh(:, n+1) = temp2I_CR_QBC(qu(m+ai), qd(m+ai), Tavg(ai), ...
                         Tdh(:, n), dt, (1+epsilon)*[h h], gc, mc, Ac);
                 end
         
                 % T at sensor locations & measurement times, excl. initial
-                Ts = [T(1, steps+1); T(end, steps+1)];
-                Tdhs = [Tdh(1, steps+1); Tdh(end, steps+1)];
+                Ts = [T(1, steps(2:end)+1); T(end, steps(2:end)+1)];
+                Tdhs = [Tdh(1, steps(2:end)+1); Tdh(end, steps(2:end)+1)];
 
                 % sensitivity coefficients
                 X = (Tdhs - Ts)./(epsilon*h);
@@ -297,12 +303,12 @@ function central(app, filename, geom, mat, param, dt)
             hStore(m+1, 2) = h;
             
             % next step initial temp
-            for n = 1:steps(2)
-                initialT = temp2I_CR_QBC(qu(m), qd(m), Tavg(1), ...
+            for n = 1:steps(2)+1
+                initialT = temp2I_CR_QBC(qu(m+1), qd(m+1), Tavg(1), ...
                         initialT, dt, [h h], gc, mc, Ac);
             end
         
-            d.Value = m/(totalSteps-r-1);
+            d.Value = m/(totalSteps-2*r);
         end
 
     end
@@ -316,7 +322,9 @@ function central(app, filename, geom, mat, param, dt)
 
     if app.plotCheck.Value % basic plot if asked
         figure()
-        plot(-dat.load(1:end-r)/(.25*pi*16.25e-3^2), hStore.^-1, 'r')
+        hold on
+        plot(-dat.load(1:end-2*r)/(.25*pi*16.25e-3^2), hStore(2:end, 1).^-1, 'r')
+        plot(-dat.load(1:end-2*r)/(.25*pi*16.25e-3^2), hStore(2:end, 2).^-1, 'r:')
         xlabel("Pressure [Pa]")
         ylabel("Contact resistance h^{-1} [m^2 K W^{-1}]")
         ylim([0 1.5*max(prctile(hStore, [0 99.9]).^-1, [], "all")])

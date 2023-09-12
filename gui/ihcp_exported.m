@@ -16,6 +16,7 @@ classdef ihcp_exported < matlab.apps.AppBase
         PlotPanel                      matlab.ui.container.Panel
         plotCheck                      matlab.ui.control.CheckBox
         HeatfluxPanel                  matlab.ui.container.Panel
+        NBmustusesamerLabel            matlab.ui.control.Label
         RefreshButton                  matlab.ui.control.Button
         qCalculated                    matlab.ui.control.CheckBox
         ThermocouplesPanel             matlab.ui.container.Panel
@@ -113,7 +114,7 @@ classdef ihcp_exported < matlab.apps.AppBase
             mat1d = materiallookup(app.down1mat.Value);
             mat2d = materiallookup(app.down2mat.Value);
 
-            T = 25; % room temp
+            T = 25; % room temp deg C
             % calculate all tau
             % upstream
             k1u = mat1u(1, 1) + T*mat1u(1, 2) + T^2*mat1u(1, 3);
@@ -180,7 +181,7 @@ classdef ihcp_exported < matlab.apps.AppBase
 
             if any([tau1u tau1c tau1d tau2u tau2c tau2d tau3c] > 0.5)
                 app.RunButton.Enable = "off";
-            else
+            elseif not(isempty(app.selectedfile.Value)) % if file picked
                 app.RunButton.Enable = "on";
             end
 
@@ -197,12 +198,15 @@ classdef ihcp_exported < matlab.apps.AppBase
             if file ~= 0
                 app.selectedfile.Value = fullfile(path, file);
                 app.RunButton.Enable = "on";
+                % prepare
+                prepdata(fullfile(path, file))
             end
             % if matching .mat file exists
             if exist(fullfile(path, file)+".mat", "file") == 2
                 app.qCalculated.Enable = "on";
             else
                 app.qCalculated.Enable = "off";
+                app.qCalculated.Value = 0;
             end
         end
 
@@ -249,6 +253,8 @@ classdef ihcp_exported < matlab.apps.AppBase
 
         function loadstate(app)
             load("defaultState.mat", "state")
+
+            isempty(app.selectedfile.Value)
 
             app.up1mat.Value = state.up1mat.Value;
             app.up1length.Value = state.up1length.Value;
@@ -463,14 +469,12 @@ classdef ihcp_exported < matlab.apps.AppBase
 
         % Button pushed function: RefreshButton
         function RefreshButtonPushed(app, event)
-            % if file selected
-            if exist("file", "var")
-                % if matching .mat file exists
-                if exist(fullfile(path, file)+".mat", "file") == 2
-                    app.qCalculated.Enable = "on";
-                else
-                    app.qCalculated.Enable = "off";
-                end
+            % if matching .mat file exists
+            if exist(app.selectedfile.Value+".mat", "file") == 2
+                app.qCalculated.Enable = "on";
+            else
+                app.qCalculated.Enable = "off";
+                app.qCalculated.Value = 0;
             end
         end
 
@@ -493,7 +497,7 @@ classdef ihcp_exported < matlab.apps.AppBase
 
             % Create ihcpUIFigure and hide until all components are created
             app.ihcpUIFigure = uifigure('Visible', 'off');
-            app.ihcpUIFigure.Position = [100 100 659 750];
+            app.ihcpUIFigure.Position = [100 100 659 761];
             app.ihcpUIFigure.Name = 'ihcp';
 
             % Create FileMenu
@@ -548,27 +552,28 @@ classdef ihcp_exported < matlab.apps.AppBase
 
             % Create SelectedfileEditFieldLabel
             app.SelectedfileEditFieldLabel = uilabel(app.ihcpUIFigure);
-            app.SelectedfileEditFieldLabel.Position = [21 711 70 20];
+            app.SelectedfileEditFieldLabel.Position = [21 722 70 20];
             app.SelectedfileEditFieldLabel.Text = 'Selected file';
 
             % Create selectedfile
             app.selectedfile = uieditfield(app.ihcpUIFigure, 'text');
             app.selectedfile.Editable = 'off';
             app.selectedfile.Placeholder = '<none>';
-            app.selectedfile.Position = [101 711 450 20];
+            app.selectedfile.Position = [101 722 450 20];
 
             % Create RunButton
             app.RunButton = uibutton(app.ihcpUIFigure, 'push');
             app.RunButton.ButtonPushedFcn = createCallbackFcn(app, @RunButtonPushed, true);
+            app.RunButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.RunButton.Enable = 'off';
-            app.RunButton.Position = [462 11 180 110];
+            app.RunButton.Position = [462 22 180 110];
             app.RunButton.Text = 'Run';
 
             % Create UpstreamPanel
             app.UpstreamPanel = uipanel(app.ihcpUIFigure);
             app.UpstreamPanel.Title = 'Upstream';
             app.UpstreamPanel.FontWeight = 'bold';
-            app.UpstreamPanel.Position = [22 521 430 170];
+            app.UpstreamPanel.Position = [22 532 430 170];
 
             % Create Section1Label
             app.Section1Label = uilabel(app.UpstreamPanel);
@@ -670,7 +675,7 @@ classdef ihcp_exported < matlab.apps.AppBase
             app.CentralPanel = uipanel(app.ihcpUIFigure);
             app.CentralPanel.Title = 'Central';
             app.CentralPanel.FontWeight = 'bold';
-            app.CentralPanel.Position = [22 311 620 200];
+            app.CentralPanel.Position = [22 322 620 200];
 
             % Create Section1Label_3
             app.Section1Label_3 = uilabel(app.CentralPanel);
@@ -816,7 +821,7 @@ classdef ihcp_exported < matlab.apps.AppBase
             app.DownstreamPanel = uipanel(app.ihcpUIFigure);
             app.DownstreamPanel.Title = 'Downstream';
             app.DownstreamPanel.FontWeight = 'bold';
-            app.DownstreamPanel.Position = [22 131 430 170];
+            app.DownstreamPanel.Position = [22 142 430 170];
 
             % Create Section1Label_4
             app.Section1Label_4 = uilabel(app.DownstreamPanel);
@@ -920,7 +925,7 @@ classdef ihcp_exported < matlab.apps.AppBase
             app.ParametersPanel = uipanel(app.ihcpUIFigure);
             app.ParametersPanel.Title = 'Parameters';
             app.ParametersPanel.FontWeight = 'bold';
-            app.ParametersPanel.Position = [22 11 430 110];
+            app.ParametersPanel.Position = [22 22 430 110];
 
             % Create rSpinnerLabel
             app.rSpinnerLabel = uilabel(app.ParametersPanel);
@@ -997,44 +1002,45 @@ classdef ihcp_exported < matlab.apps.AppBase
             % Create BrowseButton
             app.BrowseButton = uibutton(app.ihcpUIFigure, 'push');
             app.BrowseButton.ButtonPushedFcn = createCallbackFcn(app, @BrowseButtonPushed, true);
-            app.BrowseButton.Position = [561 711 80 20];
+            app.BrowseButton.Position = [561 722 80 20];
             app.BrowseButton.Text = 'Browse...';
 
             % Create HeattransfercoefficientsButtonGroup
             app.HeattransfercoefficientsButtonGroup = uibuttongroup(app.ihcpUIFigure);
             app.HeattransfercoefficientsButtonGroup.Title = 'Heat transfer coefficients';
             app.HeattransfercoefficientsButtonGroup.FontWeight = 'bold';
-            app.HeattransfercoefficientsButtonGroup.Position = [462 221 180 80];
+            app.HeattransfercoefficientsButtonGroup.Position = [462 232 180 80];
 
             % Create IndividualButton
             app.IndividualButton = uiradiobutton(app.HeattransfercoefficientsButtonGroup);
+            app.IndividualButton.Enable = 'off';
             app.IndividualButton.Text = 'Individual';
             app.IndividualButton.Position = [11 34 73 22];
-            app.IndividualButton.Value = true;
 
             % Create AverageButton
             app.AverageButton = uiradiobutton(app.HeattransfercoefficientsButtonGroup);
             app.AverageButton.Text = 'Average';
             app.AverageButton.Position = [11 12 66 22];
+            app.AverageButton.Value = true;
 
             % Create ThermocouplesPanel
             app.ThermocouplesPanel = uipanel(app.ihcpUIFigure);
+            app.ThermocouplesPanel.Enable = 'off';
             app.ThermocouplesPanel.Title = 'Thermocouples';
             app.ThermocouplesPanel.FontWeight = 'bold';
-            app.ThermocouplesPanel.Position = [462 521 180 80];
+            app.ThermocouplesPanel.Position = [462 532 180 80];
 
             % Create centreTC
             app.centreTC = uicheckbox(app.ThermocouplesPanel);
             app.centreTC.ValueChangedFcn = createCallbackFcn(app, @centreTCValueChanged, true);
             app.centreTC.Text = 'Use TC in central piece';
             app.centreTC.Position = [11 29 147 20];
-            app.centreTC.Value = true;
 
             % Create HeatfluxPanel
             app.HeatfluxPanel = uipanel(app.ihcpUIFigure);
             app.HeatfluxPanel.Title = 'Heat flux';
             app.HeatfluxPanel.FontWeight = 'bold';
-            app.HeatfluxPanel.Position = [462 131 180 80];
+            app.HeatfluxPanel.Position = [462 142 180 80];
 
             % Create qCalculated
             app.qCalculated = uicheckbox(app.HeatfluxPanel);
@@ -1048,11 +1054,17 @@ classdef ihcp_exported < matlab.apps.AppBase
             app.RefreshButton.Position = [121 29 50 20];
             app.RefreshButton.Text = 'Refresh';
 
+            % Create NBmustusesamerLabel
+            app.NBmustusesamerLabel = uilabel(app.HeatfluxPanel);
+            app.NBmustusesamerLabel.FontColor = [0.502 0.502 0.502];
+            app.NBmustusesamerLabel.Position = [12 6 120 20];
+            app.NBmustusesamerLabel.Text = 'N.B. must use same r';
+
             % Create PlotPanel
             app.PlotPanel = uipanel(app.ihcpUIFigure);
             app.PlotPanel.Title = 'Plot';
             app.PlotPanel.FontWeight = 'bold';
-            app.PlotPanel.Position = [462 611 180 80];
+            app.PlotPanel.Position = [462 622 180 80];
 
             % Create plotCheck
             app.plotCheck = uicheckbox(app.PlotPanel);

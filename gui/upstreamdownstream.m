@@ -41,7 +41,7 @@ function upstreamdownstream(app, filename, geom, mat, param, dt)
     %% import
     dat = readtable(filename);
     totalSteps = length(dat.time);
-    qu = zeros(totalSteps-r-1, 2);
+    qu = zeros(totalSteps-r, 2);
     qd = qu;
     qu(1, :) = qInitial;
     qd(1, :) = qInitial;
@@ -50,7 +50,7 @@ function upstreamdownstream(app, filename, geom, mat, param, dt)
     % initial temp distribution
     initialT = interp1([1; Nu], [dat.T_Cu2(1); dat.T_Inco1(1)], (1:Nu)');
     
-    for m = 1:totalSteps-r-1
+    for m = 1:totalSteps-r
         % reset counters
         converged = 0;
         iter = 1;
@@ -58,8 +58,8 @@ function upstreamdownstream(app, filename, geom, mat, param, dt)
         errorR = errorL;
     
         % time data
-        time = dat.time(m:m+r);
-        % no. of steps of dt from initial time
+        time = dat.time(m:m+r); % [m m+1 m+2 ...] where m+1 is current step
+        % no. of steps of dt from previous time m
         steps = round((time - time(1))/dt);
     
         % temp matrices incl. initial time
@@ -73,10 +73,10 @@ function upstreamdownstream(app, filename, geom, mat, param, dt)
         qR = qu(m, 2);
     
         % measured data r steps into future
-        Y = [dat.T_Cu2(m:m+r)';
-            dat.T_Inco1(m:m+r)'];
+        Y = [dat.T_Cu2(m+1:m+r)';
+            dat.T_Inco1(m+1:m+r)'];
         Tavg = mean(Y, 1);
-    
+
         while converged == 0
             preverrorL = errorL;
             preverrorR = errorR;
@@ -94,14 +94,17 @@ function upstreamdownstream(app, filename, geom, mat, param, dt)
             end
     
             % T at sensor locations & measurement times
-            Ts = [T(1, steps+1); T(end, steps+1)];
-            TdqLs = [TdqL(1, steps+1); TdqL(end, steps+1)];
-            TdqRs = [TdqR(1, steps+1); TdqR(end, steps+1)];
+            Ts = [T(1, steps(2:end)+1); T(end, steps(2:end)+1)];
+            TdqLs = [TdqL(1, steps(2:end)+1); TdqL(end, steps(2:end)+1)];
+            TdqRs = [TdqR(1, steps(2:end)+1); TdqR(end, steps(2:end)+1)];
     
             % sensitivity coefficients
             XL = (TdqLs - Ts)./(epsilon*qL);
             XR = (TdqRs - Ts)./(epsilon*qR);
-    
+
+            %size(Y)
+            %size(Ts)
+
             % newton method increment
             dqL = sum((Y-Ts).*XL, 'all')/sum(XL.^2, 'all');
             dqR = sum((Y-Ts).*XR, 'all')/sum(XR.^2, 'all');
@@ -135,11 +138,13 @@ function upstreamdownstream(app, filename, geom, mat, param, dt)
         qu(m+1, :) = [qL qR];
         
         % next step initial temp
-        for n = 1:steps(2)
+        %interpq = interp1([1 steps(2)+1]', [qu(m, :)' qu(m+1, :)'], (1:steps(2)+1)');
+
+        for n = 1:steps(2)+1 % +1?
             initialT = temp1I_PC_QBC(qL, qR, Tavg(1), initialT, dt, gu, mu, Au);
         end
         
-        d.Value = m/(totalSteps-r-1);
+        d.Value = m/(totalSteps-r);
     end
     
     %% time iteration downstream
@@ -150,7 +155,7 @@ function upstreamdownstream(app, filename, geom, mat, param, dt)
     d = uiprogressdlg(fig, 'Title', 'In progress (2 of 3)', 'Message', ...
         'Computing heat flux in downstream section...');
 
-    for m = 1:totalSteps-r-1
+    for m = 1:totalSteps-r
         % reset counters
         converged = 0;
         iter = 1;
@@ -172,8 +177,8 @@ function upstreamdownstream(app, filename, geom, mat, param, dt)
         qR = qd(m, 2);
     
         % measured data r steps into future
-        Y = [dat.T_Inco2(m:m+r)';
-            dat.T_Cu3(m:m+r)'];
+        Y = [dat.T_Inco2(m+1:m+r)';
+            dat.T_Cu3(m+1:m+r)'];
         Tavg = mean(Y, 1);
     
         while converged == 0
@@ -193,9 +198,9 @@ function upstreamdownstream(app, filename, geom, mat, param, dt)
             end
     
             % T at sensor locations & measurement times
-            Ts = [T(1, steps+1); T(end, steps+1)];
-            TdqLs = [TdqL(1, steps+1); TdqL(end, steps+1)];
-            TdqRs = [TdqR(1, steps+1); TdqR(end, steps+1)];
+            Ts = [T(1, steps(2:end)+1); T(end, steps(2:end)+1)];
+            TdqLs = [TdqL(1, steps(2:end)+1); TdqL(end, steps(2:end)+1)];
+            TdqRs = [TdqR(1, steps(2:end)+1); TdqR(end, steps(2:end)+1)];
     
             % sensitivity coefficients
             XL = (TdqLs - Ts)./(epsilon*qL);
@@ -234,13 +239,13 @@ function upstreamdownstream(app, filename, geom, mat, param, dt)
         qd(m+1, :) = [qL qR];
         
         % next step initial temp
-        for n = 1:steps(2)
+        for n = 1:steps(2)+1
             initialT = temp1I_PC_QBC(qL, qR, Tavg(1), initialT, dt, gd, md, Ad);
         end
     
-        d.Value = m/(totalSteps-r-1);
+        d.Value = m/(totalSteps-r);
     end
-    
+
     % save relevant boundaries
     qu = qu(:, 2);
     qd = qd(:, 1);
