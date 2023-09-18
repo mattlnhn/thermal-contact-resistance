@@ -1,4 +1,4 @@
-function [h] = inverse(app, filename, geometry, materials, parameters)
+function [h] = inverse_sep(app, filename, geometry, materials, parameters)
 %INVERSE Summary of this function goes here
 %   Detailed explanation goes here
     %% progress bar
@@ -24,8 +24,8 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
     %% import
     dat = readtable(filename);
     totalSteps = length(dat.time);
-    hStore = zeros(totalSteps-r, 1);
-    hStore(1) = hInitial;
+    hStore = zeros(totalSteps-r, 2);
+    hStore(1, :) = hInitial;
 
     initialT = interp1([1; geometry{6}'; N], ...
         [dat.T_Cu1(1); dat.T_Cu2(1); dat.T_Inco1(1); ...
@@ -36,7 +36,8 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
         % reset counters
         converged = 0;
         iter = 1;
-        error = 1e20;
+        erroru = 1e20;
+        errord = erroru;
     
         % time data
         time = dat.time(m:m+r);
@@ -46,10 +47,11 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
         % temp matrices incl. initial time
         T = zeros(N, steps(end)+1);
         T(:, 1) = initialT;
-        Tdh = T;
+        Tdhu = T;
+        Tdhd = T;
     
         % start with previous values of h
-        h = hStore(m);
+        h = hStore(m, :);
     
         % measured data r steps into future
         Y = [dat.T_Cu2(m+1:m+r)';
@@ -61,40 +63,49 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
         Tavg = .5*(y(2:end, :)-y(1:end-1, :));
     
         while converged == 0
-            preverror = error;
+            preverroru = erroru;
+            preverrord = errord;
     
             for n = 1:steps(end)
                 % index for avg temp
                 ai = sum(steps<n);
                 % temp updates
-                T(:, n+1) = direct([dat.T_Cu1(m+ai) dat.T_Cu4(m+ai)], ...
+                T(:, n+1) = direct_sep([dat.T_Cu1(m+ai) dat.T_Cu4(m+ai)], ...
                     Tavg(:, ai), T(:, n), h, dt, geometry, materials, A);
-                Tdh(:, n+1) = direct([dat.T_Cu1(m+ai) dat.T_Cu4(m+ai)], ...
-                    Tavg(:, ai), Tdh(:, n), (1+epsilon)*h, dt, geometry, ...
+                Tdhu(:, n+1) = direct_sep([dat.T_Cu1(m+ai) dat.T_Cu4(m+ai)], ...
+                    Tavg(:, ai), Tdhu(:, n), [(1+epsilon)*h(1) h(2)], dt, geometry, ...
+                    materials, A);
+                Tdhd(:, n+1) = direct_sep([dat.T_Cu1(m+ai) dat.T_Cu4(m+ai)], ...
+                    Tavg(:, ai), Tdhd(:, n), [h(1) (1+epsilon)*h(2)], dt, geometry, ...
                     materials, A);
             end
     
             % T at sensor locations & measurement times, excl. initial
             Ts = [T(geometry{6}, steps(2:end)+1)];
-            Tdhs = [Tdh(geometry{6}, steps(2:end)+1)];
+            Tdhus = [Tdhu(geometry{6}, steps(2:end)+1)];
+            Tdhds = [Tdhd(geometry{6}, steps(2:end)+1)];
 
             % sensitivity coefficients
-            X = (Tdhs - Ts)./(epsilon*h);
+            Xu = (Tdhus - Ts)./(epsilon*h(1));
+            Xd = (Tdhds - Ts)./(epsilon*h(2));
     
             % newton method increment
-            dh = sum((Y-Ts).*X, 'all')/sum(X.^2, 'all');
+            dhu = sum((Y-Ts).*Xu, 'all')/sum(Xu.^2, 'all');
+            dhd = sum((Y-Ts).*Xd, 'all')/sum(Xd.^2, 'all');
     
-            h = h + dh;
+            h = h + [dhu dhd];
     
-            error = sum(.5*(Y-Tdhs).^2, 'all');
+            erroru = sum(.5*(Y-Tdhus).^2, 'all');
+            errord = sum(.5*(Y-Tdhds).^2, 'all');
     
             % convergence criteria
             % relative change in h
-            if abs(dh/h) < RTOLh
+            if abs(dhu/h(1)) < RTOLh && abs(dhd/h(2)) < RTOLh
                 converged = 1;
             end
             % relative change in error
-            if abs((error-preverror)/preverror) < RTOLerror
+            if abs((erroru-preverroru)/preverroru) < RTOLerror && ...
+                    abs((errord-preverrord)/preverrord) < RTOLerror
                 converged = 1;
             end
             % timeout
@@ -107,11 +118,11 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
         end
     
         % save q
-        hStore(m+1) = h;
+        hStore(m+1, :) = h;
         
         % next step initial temp
         for n = 1:steps(2)+1
-            initialT = direct([dat.T_Cu1(m+1) dat.T_Cu4(m+1)], ...
+            initialT = direct_sep([dat.T_Cu1(m+1) dat.T_Cu4(m+1)], ...
                     Tavg(:, 1), initialT, h, dt, geometry, materials, A);
         end
     
