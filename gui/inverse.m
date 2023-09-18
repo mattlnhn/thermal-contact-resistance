@@ -5,11 +5,9 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
     fig = app.ihcpUIFigure;
     d = uiprogressdlg(fig, 'Title', 'In progress', 'Message', ...
         'Computing heat transfer coefficients...');
-
-    %% section geometry
+    
+    %% precalculate A matrix
     N = geometry{5};
-
-    %% precalculate A matrices
     A = diag(ones(N-1, 1), -1) + diag(-2*ones(N, 1), 0) + ...
         diag(ones(N-1, 1), 1);
     A(1, 1) = -3; A(end, end) = -3;
@@ -132,10 +130,9 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
         figure()
         hold on
         plot(-dat.load(1:end-r)/(.25*pi*16.25e-3^2), hStore(2:end, 1).^-1, 'r')
-        %plot(-dat.load(1:end-r)/(.25*pi*16.25e-3^2), hStore(2:end, 2).^-1, 'r:')
         xlabel("Pressure [Pa]")
         ylabel("Contact resistance h^{-1} [m^2 K W^{-1}]")
-        ylim([0 1.5*max(prctile(hStore, [0 99.9]).^-1, [], "all")])
+        ylim([0 1.5*max(hStore.^-1, [], "all")])
         grid on
         grid minor
     end
