@@ -45,10 +45,10 @@ Tout = Tsave([1 geometry{6} N], :)';
 noise = [0 1e-4 1e-3 1e-2 1e-1];
 
 for n = 1:length(noise)
-    noisyTout = Tout + noise*Tout.*(rand(rows, cols) - .5);
+    noisyTout = Tout + noise(n)*Tout.*(rand(rows, cols) - .5);
     Touttable = array2table([(DT:DT:totalTime)' noisyTout]);
     Touttable.Properties.VariableNames(1:7) = ["time", "T_Cu1", "T_Cu2", "T_Inco1", "T_Inco2", "T_Cu3", "T_Cu4"];
-    filename = sprintf("230918-validate-noise%.0e", noise) + ".dat";
+    filename = sprintf("230918-validate-noise%.0e", noise(n)) + ".dat";
     writetable(Touttable, filename)
 end
 
