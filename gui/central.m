@@ -26,7 +26,7 @@ function central(app, filename, geom, mat, param, dt)
   
     %% parameters
     r = param.r;
-    epsilon = 1e-2;
+    epsilon = param.epsilon;
     RTOLh = param.RTOLqh;
     RTOLerror = param.RTOLerror;
     maxIter = param.maxiter;
@@ -40,7 +40,11 @@ function central(app, filename, geom, mat, param, dt)
     
     %% time iteration
     % initial temp distribution
-    initialT = interp1([1; TCH25; Nc], [dat.T_Inco1(1); dat.T_H25(1); dat.T_Inco2(1)], (1:Nc)');
+    try
+        initialT = interp1([1; TCH25; Nc], [dat.T_Inco1(1); dat.T_H25(1); dat.T_Inco2(1)], (1:Nc)');
+    catch
+        initialT = interp1([1; Nc], [dat.T_Inco1(1); dat.T_Inco2(1)], (1:Nc)');
+    end
     
     if app.IndividualButton.Value == 1 % individual htcs
 

@@ -254,8 +254,6 @@ classdef ihcp_exported < matlab.apps.AppBase
         function loadstate(app)
             load("defaultState.mat", "state")
 
-            isempty(app.selectedfile.Value)
-
             app.up1mat.Value = state.up1mat.Value;
             app.up1length.Value = state.up1length.Value;
             app.up2mat.Value = state.up2mat.Value;

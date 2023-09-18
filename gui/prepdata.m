@@ -2,7 +2,12 @@ function prepdata(filename)
 % Remove duplicate rows
     dat = readtable(filename);
     
-    varlist = [dat.T_oven dat.T_Cu1 dat.T_Cu2 dat.T_Inco1 dat.T_H25 dat.T_Inco2 dat.T_Cu3];
+    try
+        varlist = [dat.T_oven dat.T_Cu1 dat.T_Cu2 dat.T_Inco1 dat.T_H25 dat.T_Inco2 dat.T_Cu3];
+    catch
+        varlist = [dat.T_oven dat.T_Cu1 dat.T_Cu2 dat.T_Inco1 dat.T_Inco2 dat.T_Cu3];
+    end
+    
     filter = zeros(size(varlist));
     
     % pick all cells where entry same as one below

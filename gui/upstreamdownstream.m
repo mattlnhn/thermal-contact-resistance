@@ -32,7 +32,7 @@ function upstreamdownstream(app, filename, geom, mat, param, dt)
     
     %% parameters
     r = param.r;
-    epsilon = 1e-2;
+    epsilon = param.epsilon;
     RTOLq = param.RTOLqh;
     RTOLerror = param.RTOLerror;
     maxIter = param.maxiter;
