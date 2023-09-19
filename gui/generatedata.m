@@ -7,7 +7,7 @@ ft = DT/dt;
 dx = .25e-3;
 totalSteps = totalTime/dt;
 totalSTEPS = totalTime/DT;
-h = interp1([0, floor(totalSteps/2), totalSteps], [1000 5000 1000], 0:totalSteps);
+h = interp1([1, .5*(1+totalSteps), totalSteps], [1000 5000 1000], 1:totalSteps, "nearest");
 
 geometry = cell(6, 1);
 geometry{1} = [41.5e-3 8e-3 5e-3 8e-3 14.5e-3];
@@ -33,22 +33,23 @@ Tsave = zeros(N, totalSTEPS);
 T = interp1([1 N]', [TL TR]', (1:N)');
 
 for m = 1:totalSteps
-    Tavg = ones(5, 1)*mean(T, "all");
+    %Tavg = ones(5, 1)*mean(T, "all");
+    Tavg = .5*([TL; T(geometry{6})]+[T(geometry{6}); TR]);
     T = direct([TL TR], Tavg, T, h(m), dt, geometry, materials, A);
     if mod(m, ft) == 0
         Tsave(:, m/ft) = T;
     end
 end
 
-Tout = Tsave([1 geometry{6} N], :)';
+Tout = [TL*ones(totalSTEPS, 1), Tsave(geometry{6}, :)', TR*ones(totalSTEPS, 1)];
 [rows, cols] = size(Tout);
-noise = [0 1e-4 1e-3 1e-2 1e-1];
+noise = [1e-4 1e-3 1e-2 5e-2];
 
 for n = 1:length(noise)
     noisyTout = Tout + noise(n)*Tout.*(rand(rows, cols) - .5);
     Touttable = array2table([(DT:DT:totalTime)' noisyTout]);
     Touttable.Properties.VariableNames(1:7) = ["time", "T_Cu1", "T_Cu2", "T_Inco1", "T_Inco2", "T_Cu3", "T_Cu4"];
-    filename = sprintf("230918-validate-noise%.0e", noise(n)) + ".dat";
+    filename = sprintf("230919-tophat-noise%.0e", noise(n)) + ".dat";
     writetable(Touttable, filename)
 end
 

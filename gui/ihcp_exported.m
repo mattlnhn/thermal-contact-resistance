@@ -30,6 +30,7 @@ classdef ihcp_exported < matlab.apps.AppBase
         LengthCu1EditFieldLabel        matlab.ui.control.Label
         BrowseButton                   matlab.ui.control.Button
         ParametersPanel                matlab.ui.container.Panel
+        separateh                      matlab.ui.control.CheckBox
         plotCheck                      matlab.ui.control.CheckBox
         dt                             matlab.ui.control.NumericEditField
         dxLabel_2                      matlab.ui.control.Label
@@ -191,7 +192,11 @@ classdef ihcp_exported < matlab.apps.AppBase
             parameters.RTOLh = app.RTOLhEditField.Value;
             parameters.RTOLerror = app.RTOLerrorEditField.Value;
 
-            inverse(app, filename, geometry, materials, parameters)
+            if app.separateh.Value
+                inverse_sep(app, filename, geometry, materials, parameters)
+            else
+                inverse(app, filename, geometry, materials, parameters)
+            end
 
         end
 
@@ -375,6 +380,11 @@ classdef ihcp_exported < matlab.apps.AppBase
             app.plotCheck = uicheckbox(app.ParametersPanel);
             app.plotCheck.Text = 'Generate plot';
             app.plotCheck.Position = [101 39 100 20];
+
+            % Create separateh
+            app.separateh = uicheckbox(app.ParametersPanel);
+            app.separateh.Text = 'Separate h';
+            app.separateh.Position = [101 17 100 22];
 
             % Create BrowseButton
             app.BrowseButton = uibutton(app.ihcpUIFigure, 'push');

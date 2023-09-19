@@ -24,8 +24,9 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
     %% import
     dat = readtable(filename);
     totalSteps = length(dat.time);
-    hStore = zeros(totalSteps-r, 1);
+    hStore = zeros(totalSteps-r+1, 1);
     hStore(1) = hInitial;
+    errStore = zeros(totalSteps-r, 4);
 
     initialT = interp1([1; geometry{6}'; N], ...
         [dat.T_Cu1(1); dat.T_Cu2(1); dat.T_Inco1(1); ...
@@ -86,7 +87,7 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
     
             h = h + dh;
     
-            error = sum(.5*(Y-Tdhs).^2, 'all');
+            error = sum((Y-Ts).^2, 'all');
     
             % convergence criteria
             % relative change in h
@@ -108,9 +109,10 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
     
         % save q
         hStore(m+1) = h;
-        
-        % next step initial temp
-        for n = 1:steps(2)+1
+        errStore(m, :) = (Y(:, 1)-Ts(:, 1)./Y(:, 1))'; % percent error @ current time
+
+        % next step initial temp    
+        for n = 1:steps(2)
             initialT = direct([dat.T_Cu1(m+1) dat.T_Cu4(m+1)], ...
                     Tavg(:, 1), initialT, h, dt, geometry, materials, A);
         end
@@ -121,6 +123,7 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
     %% write file
     [path, file, ext] = fileparts(filename);
     writematrix(hStore, path+"\h_"+file+ext, "WriteMode", "overwrite");
+    writematrix(errStore, path+"\err_"+file+ext, "WriteMode", "overwrite");
 
     %% tidy up
     close(d) % kill progress bar
