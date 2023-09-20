@@ -7,7 +7,9 @@ ft = DT/dt;
 dx = .25e-3;
 totalSteps = totalTime/dt;
 totalSTEPS = totalTime/DT;
-h = interp1([1, .5*(1+totalSteps), totalSteps], [1000 5000 1000], 1:totalSteps, "nearest");
+% h = interp1([1, .5*(1+totalSteps), totalSteps], [1000 5000 1000], 1:totalSteps, "nearest");
+t = 1:totalSteps;
+h = 3000 + 2000*(t/totalSteps).*sin(t*4*pi/totalSteps);
 
 geometry = cell(6, 1);
 geometry{1} = [41.5e-3 8e-3 5e-3 8e-3 14.5e-3];
@@ -49,7 +51,7 @@ for n = 1:length(noise)
     noisyTout = Tout + noise(n)*Tout.*(rand(rows, cols) - .5);
     Touttable = array2table([(DT:DT:totalTime)' noisyTout]);
     Touttable.Properties.VariableNames(1:7) = ["time", "T_Cu1", "T_Cu2", "T_Inco1", "T_Inco2", "T_Cu3", "T_Cu4"];
-    filename = sprintf("230919-tophat-noise%.0e", noise(n)) + ".dat";
+    filename = sprintf("230920-oscillate-noise%.0e", noise(n)) + ".dat";
     writetable(Touttable, filename)
 end
 

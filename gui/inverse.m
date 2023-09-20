@@ -59,7 +59,7 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
             dat.T_Cu3(m+1:m+r)'];
         % for average temp
         y = [dat.T_Cu1(m+1:m+r)'; Y; dat.T_Cu4(m+1:m+r)'];
-        Tavg = .5*(y(2:end, :)-y(1:end-1, :));
+        Tavg = .5*(y(2:end, :)+y(1:end-1, :));
     
         while converged == 0
             preverror = error;
@@ -109,7 +109,7 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
     
         % save q
         hStore(m+1) = h;
-        errStore(m, :) = (Y(:, 1)-Ts(:, 1)./Y(:, 1))'; % percent error @ current time
+        errStore(m, :) = ((Y(:, 1)-Ts(:, 1))./Y(:, 1))'; % percent error @ current time
 
         % next step initial temp    
         for n = 1:steps(2)
