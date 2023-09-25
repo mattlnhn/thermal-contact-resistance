@@ -26,7 +26,7 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
     totalSteps = length(dat.time);
     hStore = zeros(totalSteps-r+1, 1);
     hStore(1) = hInitial;
-    errStore = zeros(totalSteps-r, 4);
+    %errStore = zeros(totalSteps-r, 4);
 
     initialT = interp1([1; geometry{6}'; N], ...
         [dat.T_Cu1(1); dat.T_Cu2(1); dat.T_Inco1(1); ...
@@ -83,11 +83,13 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
             X = (Tdhs - Ts)./(epsilon*h);
     
             % newton method increment
-            dh = sum((Y-Ts).*X, 'all')/sum(X.^2, 'all');
+            %dh = sum((Y-Ts).*X, 'all')/sum(X.^2, 'all');
+            dh = sum((Y-Tdhs).*X, 'all')/sum(X.^2, 'all');
     
             h = h + dh;
     
             error = sum((Y-Ts).^2, 'all');
+            %error = sum((Y-Tdhs).^2, 'all');
     
             % convergence criteria
             % relative change in h
@@ -109,7 +111,7 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
     
         % save q
         hStore(m+1) = h;
-        errStore(m, :) = ((Y(:, 1)-Ts(:, 1))./Y(:, 1))'; % percent error @ current time
+        %errStore(m, :) = ((Y(:, 1)-Ts(:, 1))./Y(:, 1))'; % percent error @ current time
 
         % next step initial temp    
         for n = 1:steps(2)
@@ -123,7 +125,7 @@ function [h] = inverse(app, filename, geometry, materials, parameters)
     %% write file
     [path, file, ext] = fileparts(filename);
     writematrix(hStore, path+"\h_"+file+ext, "WriteMode", "overwrite");
-    writematrix(errStore, path+"\err_"+file+ext, "WriteMode", "overwrite");
+    %writematrix(errStore, path+"\err_"+file+ext, "WriteMode", "overwrite");
 
     %% tidy up
     close(d) % kill progress bar

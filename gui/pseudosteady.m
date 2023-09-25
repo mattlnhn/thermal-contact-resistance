@@ -1,7 +1,7 @@
 clear;
 
-filenames = ["230915-1414.dat", "230915-1441.dat", "230915-1502.dat"];
-lbl = ["Smooth", "Medium rough", "Rough"];
+filenames = ["H:\Internship\MATLAB\git\gui\validate\generated\230920-oscillate-noise1e-04.dat"];
+lbl = [];
 L = length(filenames);
 
 figure()
