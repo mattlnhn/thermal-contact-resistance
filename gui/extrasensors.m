@@ -1,5 +1,5 @@
 % filename
-filename = "230927-tophatsep5-noise1e-02.dat";
+filename = "230927-tophatsep5-noise1e-04.dat";
 
 % geometry
 geometry = cell(6, 1);
