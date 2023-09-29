@@ -10,12 +10,11 @@ totalSteps = totalTime/dt;
 warmupSteps = warmupTime/dt;
 totalSTEPS = totalTime/DT;
 % h = interp1([1, .5*(1+totalSteps), totalSteps], [1000 5000 1000], 1:totalSteps, "linear");
-% h = interp1([0, totalSteps/2, totalSteps], [1000 5000 1000], 0:totalSteps, "linear");
-% h = h(2:end); % m = 1:totalSteps 
-% h0 = 1000
-t = 1:totalSteps;
-h = 3000 + 2000*(t/totalSteps).*sin(t*4*pi/totalSteps);
-h0 = 3000;
+h = interp1([0, totalSteps/2, totalSteps], [1000 5000 1000], 1:totalSteps, "nearest");
+h0 = 1000;
+% t = 1:totalSteps;
+% h = 3000 + 2000*(t/totalSteps).*sin(t*4*pi/totalSteps);
+% h0 = 3000;
 
 geometry = cell(6, 1);
 geometry{1} = [41.5e-3 8e-3 5e-3 8e-3 14.5e-3];
@@ -58,14 +57,14 @@ end
 
 Tout = [TL*ones(totalSTEPS, 1), Tsave(geometry{6}, :)', TR*ones(totalSTEPS, 1)];
 [rows, cols] = size(Tout);
-noise = [1e-4 1e-3 1e-2 5e-2];
+noise = 1e-3;
+accuracy = 1.5;
 
-for n = 1:length(noise)
-    noisyTout = Tout + noise(n)*Tout.*(rand(rows, cols) - .5);
-    Touttable = array2table([(DT:DT:totalTime)' noisyTout]);
-    Touttable.Properties.VariableNames(1:7) = ["time", "T_Cu1", "T_Cu2", "T_Inco1", "T_Inco2", "T_Cu3", "T_Cu4"];
-    filename = sprintf("230926-oscillator-noise%.0e", noise(n)) + ".dat";
-    writetable(Touttable, filename)
-end
+noisyTout = Tout + noise*Tout.*(rand(rows, cols) - .5) + ...
+    accuracy*ones(rows, 1).*(rand(1, cols) - .5); % rnd noise + constant offset
+Touttable = array2table([(DT:DT:totalTime)' noisyTout]);
+Touttable.Properties.VariableNames(1:7) = ["time", "T_Cu1", "T_Cu2", "T_Inco1", "T_Inco2", "T_Cu3", "T_Cu4"];
+filename = sprintf("230926-tophat-noise%.0e-pm%.1f", noise, accuracy) + ".dat";
+writetable(Touttable, filename)
 
 
