@@ -60,11 +60,13 @@ Tout = [TL*ones(totalSTEPS, 1), Tsave(geometry{6}, :)', TR*ones(totalSTEPS, 1)];
 noise = 1e-3;
 accuracy = 1.5;
 
-noisyTout = Tout + noise*Tout.*(rand(rows, cols) - .5) + ...
-    accuracy*ones(rows, 1).*(rand(1, cols) - .5); % rnd noise + constant offset
-Touttable = array2table([(DT:DT:totalTime)' noisyTout]);
-Touttable.Properties.VariableNames(1:7) = ["time", "T_Cu1", "T_Cu2", "T_Inco1", "T_Inco2", "T_Cu3", "T_Cu4"];
-filename = sprintf("230926-tophat-noise%.0e-pm%.1f", noise, accuracy) + ".dat";
-writetable(Touttable, filename)
+for i = 1:20
+    noisyTout = Tout + noise*Tout.*(rand(rows, cols) - .5) + ...
+        accuracy*ones(rows, 1).*(rand(1, cols) - .5); % rnd noise + constant offset
+    Touttable = array2table([(DT:DT:totalTime)' noisyTout]);
+    Touttable.Properties.VariableNames(1:7) = ["time", "T_Cu1", "T_Cu2", "T_Inco1", "T_Inco2", "T_Cu3", "T_Cu4"];
+    filename = sprintf("230929-tophat-noise%.0e-pm%.1f-%d", noise, accuracy, i) + ".dat";
+    writetable(Touttable, filename)
+end
 
 
