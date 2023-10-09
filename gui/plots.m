@@ -1,26 +1,19 @@
 %% TRANSIENT
 
-filenames = ["H:\Internship\MATLAB\git\gui\230928-smooth.dat", ...
-    "H:\Internship\MATLAB\git\gui\230928-med.dat", ...
-    "H:\Internship\MATLAB\git\gui\230928-rough.dat"];
+filenames = ["/Users/matt/Documents/tcr/gui/230929-smooth.dat", ...
+    "/Users/matt/Documents/tcr/gui/230929-med.dat", ...
+    "/Users/matt/Documents/tcr/gui/230929-rough.dat"];
 [path, file, ext] = fileparts(filenames);
-hfilenames = path+"\h_"+file+ext;
+hfilenames = path+"/h_"+file+ext;
 
 % set up figure
 figure()
-subplot(1, 2, 1)
 hold on
 grid on
 grid minor
 xlabel("Pressure [Pa]")
 ylabel("Contact resistance h^{-1} [m^2 K W^{-1}]")
-ylim([0 1e-3])
-subplot(1, 2, 2)
-hold on
-grid on
-grid minor
-xlabel("Pressure [Pa]")
-ylabel("Contact resistance h^{-1} [m^2 K W^{-1}]")
+xlim([0 3e5])
 ylim([0 1e-3])
 
 cmap = winter(length(filenames));
@@ -31,7 +24,6 @@ r = 2;
 for f = 1:length(filenames)
     dat = readtable(filenames(f));
     hdat = readmatrix(hfilenames(f));
-    subplot(1, 2, 1)
     plot(-9.81*dat.load(1:end-r)/(16.25e-3^2*pi/4), hdat(2:end).^-1, '-', Color=cmap(f, :))
 end
 
@@ -75,10 +67,7 @@ for ff = 1:L
     
     p = -dat.load*9.81/(16.25e-3^2*pi/4);
     alpha = .2;
-    subplot(1, 2, 1)
     plot(p, r, '--', Color=[cmap(ff, :) alpha])
-    subplot(1, 2, 2)
-    plot(p, r, '--', Color=cmap(ff, :))
 
 %     % fit data to y = ae^bx + c
 %     f = @(c, x) c(1).*exp(c(2).*x) + c(3);
@@ -94,8 +83,5 @@ for ff = 1:L
 %     txt{2*file} = eqn;
 end
 
-subplot(1, 2, 1)
 legend([file file], NumColumns=2)
-subplot(1, 2, 2)
-legend(file)
-sgtitle("Solid = transient (r = 2); dashed = pseudo-steady")
+title("Solid = transient (r = 2); dashed = pseudo-steady")
